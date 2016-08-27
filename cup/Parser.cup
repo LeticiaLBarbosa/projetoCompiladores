@@ -1,71 +1,583 @@
-package Example;
+package compiler.analysis.generated;
 
 import java_cup.runtime.*;
-import Example.Parser.Expr;
+//import compiler.analysis.SemanticAnalyser;
+//import compiler.analysis.CodeGenerator;
+//import compiler.analysis.model.Type;
+//import compiler.analysis.model.Console;
 
 parser code {:
-    public static abstract class Expr {
-	public abstract int eval();
-	public abstract Location right();
-	public abstract Location left();
-	static class BinExpr extends Expr {
-	    Expr l,r;
-	    int s;
-	    BinExpr(Expr l, int sym,Expr r){
-		this.l=l;
-		this.r=r;
-		this.s=sym;
-	    }
-	    public int eval(){
-		if (s==sym.PLUS) return l.eval() + r.eval();
-		else return l.eval() * r.eval();
-	    }
-	    public Location left() { return l.left(); }
-	    public Location right() {return r.right(); }
-	}
-	static class Const extends Expr {
-	    Location l,r;
-	    Integer value;
-	    Const(Location l,Integer i,Location r){
-		this.l=l;
-		this.r=r;
-		this.value = i;
-	    }
-	    public int eval(){ return value;  }
-	    public Location left() { return l; }
-	    public Location right() {return r; }
-	}
+  
+  //public static SemanticAnalyser sAnalyser = new SemanticAnalyser();
+  //public static CodeGenerator cGenerator = new CodeGenerator();
+  
+  public void report_error(String message, Object info) {
+    StringBuffer m = new StringBuffer("Erro");
+    if (info instanceof java_cup.runtime.Symbol) {
+  	  java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
+      m.append(" na linha " + (s.left));
+      m.append(", coluna " + (s.right));
     }
-    public static void main(String args[]) throws Exception {
-	ComplexSymbolFactory sf = new ComplexSymbolFactory();
-	if (args.length==0) new Parser(new Scanner(System.in,sf),sf).parse();
-	else new Parser(new Scanner(new java.io.FileInputStream(args[0]),sf),sf).parse();
-    }
+    m.append(" : " + message);
+    System.err.println(m);
+  }
 
-    public void syntax_error(Symbol sym){ 
-	// Mute legacy Error Printing
-    }
-:}
+  public void report_fatal_error(String message, Object info) {
+    report_error(message, info);
+    System.exit(-1);
+  }
+    
+:};
 
-terminal SEMI, PLUS, TIMES, LPAREN, RPAREN;
-terminal Integer NUMBER;
+terminal	IDENTIFIER, I_CONSTANT, F_CONSTANT, C_CONSTANT, STRING_LITERAL, FUNC_NAME, SIZEOF;
+terminal	PTR_OP, INC_OP, DEC_OP, LEFT_OP, RIGHT_OP, LE_OP, GE_OP, EQ_OP, NE_OP;
+terminal	AND_OP, OR_OP, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, ADD_ASSIGN;
+terminal	SUB_ASSIGN, LEFT_ASSIGN, RIGHT_ASSIGN, AND_ASSIGN;
+terminal	XOR_ASSIGN, OR_ASSIGN;
+terminal	TYPEDEF_NAME, ENUMERATION_CONSTANT;
 
-non terminal expr_list, expr_part;
-non terminal Expr expr;
+terminal	TYPEDEF, EXTERN, STATIC, AUTO, REGISTER, INLINE;
+terminal	CONST, RESTRICT, VOLATILE;
+terminal	BOOL, CHAR, SHORT, INT, LONG, SIGNED, UNSIGNED, FLOAT, DOUBLE, VOID;
+terminal	COMPLEX, IMAGINARY;
+terminal	STRUCT, UNION, ENUM, ELLIPSIS;
 
-precedence left PLUS;
-precedence left TIMES;
+terminal	CASE, DEFAULT, IF, ELSE, SWITCH, WHILE, DO, FOR, GOTO, CONTINUE, BREAK, RETURN;
 
-expr_list ::= expr_list expr_part | expr_part;
-expr_part ::= expr:e {: System.out.println(" = "+e.eval()+";"); :} SEMI
-            | error:e SEMI:s {: parser.report_error("Syntax error in input from "+exleft +" to "+sxright,e); :}
-            ;
-expr      ::= NUMBER:n
-              {: RESULT= new Expr.Const(nxleft,n,nxright); :}
-            | expr:l PLUS expr:r
-	    {: RESULT=new Expr.BinExpr(l,sym.PLUS,r); :}
-	    | expr:l TIMES expr:r
-	    {: RESULT=new Expr.BinExpr(l,sym.TIMES,r); :}
-	    | LPAREN expr:e RPAREN
-	      {: RESULT=e; :}
-	    ;
+terminal	ALIGNAS, ALIGNOF, ATOMIC, GENERIC, NORETURN, STATIC_ASSERT, THREAD_LOCAL;
+
+terminal	DOT, SEMICOLON, COMMA, COLON, ASSIGNMENT, QUESTION, NEG, POUND, INCLUDE;
+terminal	LEFT_PARENTESIS, RIGHT_PARENTESIS, LEFT_SQ_BRACK, RIGHT_SQ_BRACK, LEFT_BRACKET, RIGHT_BRACKET;
+terminal	AND_BINARY, NEG_BINARY, MINUS, PLUS, TIMES, DIV, MOD, LESS_THAN, GREATER_THAN, XOR_BINARY, OR_BINARY;
+
+/* nao terminais tbm sao novos */
+non terminal compilation_unit, package_statement, import_statement, type_declaration, doc_comment, class_declaration;
+non terminal interface_declaration, field_declaration, method_declaration, constructor_declaration, statement_block;
+non terminal variable_declaration, variable_declarator, variable_initializer, static_initializer, parameter_list;
+non terminal parameter, statement, if_statement, do_statement, while_statement, for_statement, try_statement;
+non terminal switch_statement, expression, numeric_expression, testing_expression, logical_expression;
+non terminal string_expression, bit_expression, casting_expression, creating_expression, literal_expression, arglist;
+non terminal type, type_specifier, modifier, package_name, class_name, interface_name, integer_literal, float_literal;
+non terminal decimal_digits, exponent_part, float_type_suffix, character, string, identifier;
+
+start with translation_unit;
+
+includes
+	::= include
+	| include includes
+	;
+
+include
+	::= POUND INCLUDE LESS_THAN IDENTIFIER GREATER_THAN
+	| POUND INCLUDE LESS_THAN IDENTIFIER DOT IDENTIFIER GREATER_THAN
+	;
+
+primary_expression
+	::= IDENTIFIER:id {: RESULT = parser.sAnalyser.getTypeIfExists((String)id); if(RESULT == null) RESULT = id; Console.log("92 <IDENTIFIER:id> " + id); :}
+	| constant:ct {: RESULT = ct; Console.logNT("93 <constant:ct> " + ct); :}
+	| string:str {: RESULT = str; Console.logNT("94 <string:str> " + str); :}
+	| LEFT_PARENTESIS expression RIGHT_PARENTESIS {: Console.logNT("95 <LEFT_PARENTESIS expression RIGHT_PARENTESIS>"); :}
+	| generic_selection
+	;
+
+constant
+	::= I_CONSTANT:ict {: RESULT = new Type("int", (String)ict); /*if(parser.sAnalyser.isIF2) parser.cGenerator.createCodeForIFNoRelationalExpression((Type)RESULT); parser.sAnalyser.isIF2=false;*/  Console.log("100 <I_CONSTANT:ict> " + ict); :}		/* includes character_constant */
+	| F_CONSTANT:fct {: RESULT = new Type("float", (String)fct); Console.log("101 <F_CONSTANT:fct> " + fct); :}
+	| C_CONSTANT:cct {: RESULT = new Type("char", (String)cct); Console.log("102 <C_CONSTANT:cct> " + cct); :}
+	| ENUMERATION_CONSTANT	/* after it has been defined as such */
+	;
+
+enumeration_constant		/* before it has been defined as such */
+	::= IDENTIFIER
+	;
+
+string
+	::= STRING_LITERAL:sl {: RESULT = sl; Console.log("<STRING_LITERAL:sl> " + sl); :}
+	| FUNC_NAME:fc {: RESULT = fc; Console.log("<FUNC_NAME:fc> " + fc); :}
+	;
+
+generic_selection
+	::= GENERIC LEFT_PARENTESIS assignment_expression COMMA generic_assoc_list RIGHT_PARENTESIS
+	;
+
+generic_assoc_list
+	::= generic_association
+	| generic_assoc_list COMMA generic_association
+	;
+
+generic_association
+	::= type_name COLON assignment_expression
+	| DEFAULT COLON assignment_expression
+	;
+
+postfix_expression
+	::= primary_expression:pe {: RESULT = pe; Console.logNT("130 <primary_expression:pe> " + pe); :}
+	| postfix_expression:pe LEFT_SQ_BRACK expression:e RIGHT_SQ_BRACK {: RESULT = pe; Console.logNT("131 <postfix_expression:pe LEFT_SQ_BRACK expression:e RIGHT_SQ_BRACK> " + pe + " " + e); :}
+	| postfix_expression:pe LEFT_PARENTESIS {: parser.sAnalyser.iniciaChamadaDeMetodo((Type)pe); :} RIGHT_PARENTESIS {: RESULT = pe; parser.sAnalyser.checaConsistenciaDeTiposChamada(((Type)pe).getOwnerId()); parser.cGenerator.creatMethodCall(pe); Console.logNT("132 <postfix_expression:pe LEFT_PARENTESIS RIGHT_PARENTESIS> " + pe + "()"); :}
+	| postfix_expression:pe LEFT_PARENTESIS {: parser.sAnalyser.iniciaChamadaDeMetodo((Type)pe); :} argument_expression_list:ael RIGHT_PARENTESIS {: RESULT = pe; parser.sAnalyser.checaConsistenciaDeTiposChamada(((Type)pe).getOwnerId()); parser.cGenerator.creatMethodCall(pe); Console.logNT("133 <postfix_expression:pe LEFT_PARENTESIS argument_expression_list:ael RIGHT_PARENTESIS> " + pe + "("+ael+")"); :}
+	| postfix_expression DOT IDENTIFIER
+	| postfix_expression PTR_OP IDENTIFIER
+	| postfix_expression INC_OP
+	| postfix_expression DEC_OP
+	| LEFT_PARENTESIS type_name RIGHT_PARENTESIS LEFT_BRACKET initializer_list RIGHT_BRACKET
+	| LEFT_PARENTESIS type_name RIGHT_PARENTESIS LEFT_BRACKET initializer_list COMMA RIGHT_BRACKET
+	;
+
+argument_expression_list
+	::= assignment_expression:ae {: parser.sAnalyser.addTiposNaChamadaCorrente((Type)ae); RESULT = ae; Console.log("143 <assignment_expression:ae> " + ae); :}
+	| argument_expression_list:ael COMMA assignment_expression:ae {: parser.sAnalyser.addTiposNaChamadaCorrente((Type)ae); RESULT = ae; Console.log("144 <argument_expression_list:ael COMMA assignment_expression:ae> " + ael + " " + ae); :}
+	;
+
+unary_expression
+	::= postfix_expression:pe {: RESULT = pe; Console.logNT("148 <postfix_expression:pe> " + pe); :}
+	| INC_OP unary_expression
+	| DEC_OP unary_expression
+	| unary_operator cast_expression {: System.err.println("negative value"); :}
+	| SIZEOF unary_expression
+	| SIZEOF LEFT_PARENTESIS type_name RIGHT_PARENTESIS
+	| ALIGNOF LEFT_PARENTESIS type_name RIGHT_PARENTESIS
+	;
+
+unary_operator
+	::= AND_BINARY
+	| TIMES:t {: RESULT = t; Console.log("159 <TIMES:t> " + t); :}
+	| DIV:d {: RESULT = d; Console.log("160 <DIV:d> " + d); :}
+	| MOD:m {: RESULT = m; Console.log("161 <MOD:m> " + m); :}
+	| PLUS:p {: RESULT = p; Console.log("160 <PLUS:p> " + p); :}
+	| MINUS:m {: RESULT = m; Console.log("161 <MINUS:m> " + m); :}
+	| NEG_BINARY
+	| NEG
+	;
+
+cast_expression
+	::= unary_expression:ue {: RESULT = ue; Console.logNT("169 <unary_expression:ue> " + ue); :}
+	| LEFT_PARENTESIS type_name RIGHT_PARENTESIS cast_expression
+	;
+
+multiplicative_expression
+	::= cast_expression:ce {: RESULT = ce; Console.logNT("174 <cast_expression:ce> " + ce); :}
+	| multiplicative_expression:me TIMES:op cast_expression:ce {: RESULT = parser.sAnalyser.getTypeFromExpression((String)op, (Type)me, (Type)ce); ((Type)RESULT).setCurrentCode(parser.cGenerator.getCodeExpression((String)op, (Type)me, (Type)ce)); Console.logNT("175 <multiplicative_expression:me TIMES:op cast_expression:ce> " + me + op + ce); :}
+	| multiplicative_expression:me DIV:op cast_expression:ce {: RESULT = parser.sAnalyser.getTypeFromExpression((String)op, (Type)me, (Type)ce); ((Type)RESULT).setCurrentCode(parser.cGenerator.getCodeExpression((String)op, (Type)me, (Type)ce)); Console.logNT("176 <multiplicative_expression:me DIV:op cast_expression:ce> " + me + op + ce); :}
+	| multiplicative_expression:me MOD:op cast_expression:ce {: RESULT = parser.sAnalyser.getTypeFromExpression((String)op, (Type)me, (Type)ce); ((Type)RESULT).setCurrentCode(parser.cGenerator.getCodeExpression((String)op, (Type)me, (Type)ce)); Console.logNT("177 <multiplicative_expression:me MOD:op cast_expression:ce> " + me + op + ce); :}
+	;
+
+additive_expression
+	::= multiplicative_expression:me {: RESULT = me; Console.logNT("179 <multiplicative_expression:me> " + me); :}
+	| additive_expression:ae PLUS:op multiplicative_expression:me {: RESULT = parser.sAnalyser.getTypeFromExpression((String)op, (Type)ae, (Type)me); ((Type)RESULT).setCurrentCode(parser.cGenerator.getCodeExpression((String)op, (Type)ae, (Type)me)); Console.logNT("180 <additive_expression:ae PLUS multiplicative_expression:me> " + ae + " " + me); :}
+	| additive_expression:ae MINUS:op multiplicative_expression:me {: RESULT = parser.sAnalyser.getTypeFromExpression((String)op, (Type)ae, (Type)me); ((Type)RESULT).setCurrentCode(parser.cGenerator.getCodeExpression((String)op, (Type)ae, (Type)me)); Console.logNT("181 <additive_expression:ae MINUS multiplicative_expression:me> " + ae + " " + me); :}
+	;
+
+shift_expression
+	::= additive_expression:ae {: RESULT = ae; Console.logNT("187 <additive_expression:ae> " + ae); :}
+	| shift_expression LEFT_OP additive_expression {: Console.logNT("188 <shift_expression LEFT_OP additive_expression> "); :}
+	| shift_expression RIGHT_OP additive_expression {: Console.logNT("189 <shift_expression LEFT_OP additive_expression> "); :}
+	;
+
+relational_expression 
+	::= shift_expression:se {: RESULT = se; Console.logNT("193 <shift_expression:se> " + se); :}
+	| relational_expression:re LESS_THAN:lt shift_expression:se {: RESULT = parser.sAnalyser.getRelationalExpressionType((Type)re, (Type)se); parser.cGenerator.createCodeForIF((Type)re, (Type)se, (String)lt); Console.logNT("194 <relational_expression LESS_THAN shift_expression>"); :}
+	| relational_expression:re GREATER_THAN:gt shift_expression:se {: RESULT = parser.sAnalyser.getRelationalExpressionType((Type)re, (Type)se); parser.cGenerator.createCodeForIF((Type)re, (Type)se, (String)gt); Console.logNT("195 <relational_expression LESS_THAN shift_expression>"); :}
+	| relational_expression:re LE_OP:le shift_expression:se {: RESULT = parser.sAnalyser.getRelationalExpressionType((Type)re, (Type)se); parser.cGenerator.createCodeForIF((Type)re, (Type)se, (String)le); Console.logNT("196 <relational_expression LE_OP shift_expression>"); :}
+	| relational_expression:re GE_OP:ge shift_expression:se {: RESULT = parser.sAnalyser.getRelationalExpressionType((Type)re, (Type)se); parser.cGenerator.createCodeForIF((Type)re, (Type)se, (String)ge); Console.logNT("197 <relational_expression GE_OP shift_expression>"); :}
+	;
+
+equality_expression
+	::= relational_expression:re {: RESULT = re; Console.logNT("201 <relational_expression:re> " + re); :}
+	| equality_expression:ee EQ_OP:eq relational_expression:re {: RESULT = parser.sAnalyser.getRelationalExpressionType((Type)ee, (Type)re); parser.cGenerator.createCodeForIF((Type)ee, (Type)re, (String)eq); Console.logNT("202 <equality_expression EQ_OP relational_expression>"); :}
+	| equality_expression:ee NE_OP:ne relational_expression:re {: RESULT = parser.sAnalyser.getRelationalExpressionType((Type)ee, (Type)re); parser.cGenerator.createCodeForIF((Type)ee, (Type)re, (String)ne); Console.logNT("203 <equality_expression NE_OP relational_expression>"); :}
+	;
+
+and_expression
+	::= equality_expression:ee {: RESULT = ee; Console.logNT("207 <equality_expression:ee> " + ee); :}
+	| and_expression AND_BINARY equality_expression
+	;
+
+exclusive_or_expression
+	::= and_expression:ae {: RESULT = ae; Console.logNT("212 <and_expression:ae> " + ae); :}
+	| exclusive_or_expression XOR_BINARY and_expression
+	;
+
+inclusive_or_expression
+	::= exclusive_or_expression:ee {: RESULT = ee; Console.logNT("217 <exclusive_or_expression:ee> " + ee); :}
+	| inclusive_or_expression OR_BINARY exclusive_or_expression
+	;
+
+logical_and_expression
+	::= inclusive_or_expression:ie {: RESULT = ie; Console.logNT("222 <inclusive_or_expression:ie> " + ie); :}
+	| logical_and_expression AND_OP inclusive_or_expression
+	;
+
+logical_or_expression
+	::= logical_and_expression:le {: RESULT = le; Console.logNT("227 <logical_and_expression:le> " + le); :}
+	| logical_or_expression OR_OP logical_and_expression
+	;
+
+conditional_expression
+	::= logical_or_expression:le {: RESULT = le; Console.logNT("232 <logical_or_expression:le> " + le); :}
+	| logical_or_expression QUESTION expression COLON conditional_expression {: Console.logNT("233 <logical_or_expression QUESTION expression COLON conditional_expression>"); :}
+	;
+
+assignment_expression
+	::= conditional_expression:ce {: RESULT = ce; Console.logNT("237 <conditional_expression:ce> " + ce); :}
+	| unary_expression:ue assignment_operator:ao assignment_expression:ae {: RESULT = ao; parser.sAnalyser.checkTypesDeclaration(ue, ae); if(((Type)ae).getCurrentCode() != null) parser.cGenerator.createExpressionCode(ue, ae); else parser.cGenerator.loadAndStoreValuesAssignment(ue, ae); :}
+	;
+
+assignment_operator
+	::= ASSIGNMENT:a {: RESULT = a; Console.log("242 <ASSIGNMENT:a> " + a); :}
+	| MUL_ASSIGN
+	| DIV_ASSIGN
+	| MOD_ASSIGN
+	| ADD_ASSIGN
+	| SUB_ASSIGN
+	| LEFT_ASSIGN
+	| RIGHT_ASSIGN
+	| AND_ASSIGN
+	| XOR_ASSIGN
+	| OR_ASSIGN
+	;
+
+expression
+	::= assignment_expression:ae {: RESULT = ae; Console.logNT("256 <assignment_expression:ae> " + ae); :}
+	| expression COMMA assignment_expression {: Console.logNT("257 <expression COMMA assignment_expression>"); :}
+	;
+
+constant_expression
+	::= conditional_expression	/* with constraints */
+	;
+
+declaration
+	::= declaration_specifiers:de SEMICOLON 
+	| declaration_specifiers:de init_declarator_list:idl SEMICOLON {: RESULT = de; Console.logNT("264 <declaration_specifiers:de> " + de + " <init_declarator_list:idl> " + idl); parser.sAnalyser.checkTypesDeclaration(de, idl); parser.sAnalyser.setNextVariableType((Type)de); :}
+	| static_assert_declaration 
+	;
+
+declaration_specifiers
+	::= storage_class_specifier declaration_specifiers
+	| storage_class_specifier
+	| type_specifier:ts declaration_specifiers:ds {: RESULT = ts; Console.logNT("273 <type_specifier:ts> " + ts + " <declaration_specifiers:ds> " + ds); :}
+	| type_specifier:ts {: RESULT = ts; Console.logNT("274 <type_specifier:ts> " + ts); parser.sAnalyser.setNextVariableType((Type)ts); :}
+	| type_qualifier declaration_specifiers
+	| type_qualifier
+	| function_specifier declaration_specifiers
+	| function_specifier
+	| alignment_specifier declaration_specifiers
+	| alignment_specifier
+	;
+
+init_declarator_list
+	::= init_declarator:id {: RESULT = id; Console.logNT("282 <init_declarator:id> " + id); :}
+	| init_declarator_list COMMA init_declarator
+	;
+
+init_declarator
+	::= declarator:d ASSIGNMENT initializer:i {: RESULT = i; Console.logNT("287 <declarator:d> " + d + " = <initializer:i> " + i); parser.sAnalyser.nextVariable = (String)d; ((Type)i).setOwnerId((String)d); /*if(((Type)i) == null) ((Type)i).setValue((String)d);*/ if(((Type)i).getCurrentCode() != null) parser.cGenerator.createExpressionCode(new Type(null, null, (String)d), i); else parser.cGenerator.loadAndStoreVariable((Type)i); :}
+	| declarator:d {: RESULT = d; Console.logNT("288 <declarator:d> " + d); parser.sAnalyser.nextVariable = (String)d; :}
+	;
+
+storage_class_specifier
+	::= TYPEDEF	/* identifiers must be flagged as TYPEDEF_NAME */
+	| EXTERN
+	| STATIC
+	| THREAD_LOCAL
+	| AUTO
+	| REGISTER
+	;
+
+type_specifier
+	::= VOID:v 		{: RESULT = new Type("void"); Console.log("301 <VOID:v> " + v); :}
+	| CHAR:c 		{: RESULT = new Type("char"); Console.log("302 <CHAR:c> " + c); :}
+	| SHORT:s 		{: RESULT = new Type("short"); Console.log("303 <SHORT:s> " + s); :}
+	| INT:i 		{: RESULT = new Type("int"); Console.log("304 <INT:i> " + i); :}
+	| LONG:l 		{: RESULT = new Type("long"); Console.log("305 <LONG:l> " + l); :}
+	| FLOAT:f 		{: RESULT = new Type("float"); Console.log("306 <FLOAT:f> " + f); :}
+	| DOUBLE:d 		{: RESULT = new Type("double"); Console.log("307 <DOUBLE:d> " + d); :}
+	| SIGNED:s 		{: RESULT = new Type("signed"); Console.log("308 <SIGNED:s> " + s); :}
+	| UNSIGNED:u 	{: RESULT = new Type("unsigned"); Console.log("309 <UNSIGNED:u> " + u); :}
+	| BOOL:b 		{: RESULT = new Type("bool"); Console.log("310 <BOOL:b> " + b); :}
+	| COMPLEX:c 	{: RESULT = new Type("complex"); Console.log("311 <COMPLEX:c> " + c); :}
+	| IMAGINARY:i 	{: RESULT = new Type("imaginary"); Console.log("312 <IMAGINARY:i> " + i); :}	  	/* non-mandated extension */
+	| atomic_type_specifier
+	| struct_or_union_specifier
+	| enum_specifier
+	| TYPEDEF_NAME		/* after it has been defined as such */
+	;
+
+struct_or_union_specifier
+	::= struct_or_union LEFT_BRACKET struct_declaration_list RIGHT_BRACKET
+	| struct_or_union IDENTIFIER LEFT_BRACKET struct_declaration_list RIGHT_BRACKET
+	| struct_or_union IDENTIFIER
+	;
+
+struct_or_union
+	::= STRUCT
+	| UNION
+	;
+
+struct_declaration_list
+	::= struct_declaration
+	| struct_declaration_list struct_declaration
+	;
+
+struct_declaration
+	::= specifier_qualifier_list SEMICOLON	/* for anonymous struct/union */
+	| specifier_qualifier_list struct_declarator_list SEMICOLON
+	| static_assert_declaration
+	;
+
+specifier_qualifier_list
+	::= type_specifier specifier_qualifier_list
+	| type_specifier
+	| type_qualifier specifier_qualifier_list
+	| type_qualifier
+	;
+
+struct_declarator_list
+	::= struct_declarator
+	| struct_declarator_list COMMA struct_declarator
+	;
+
+struct_declarator
+	::= COLON constant_expression
+	| declarator COLON constant_expression
+	| declarator
+	;
+
+enum_specifier
+	::= ENUM LEFT_BRACKET enumerator_list RIGHT_BRACKET
+	| ENUM LEFT_BRACKET enumerator_list COMMA RIGHT_BRACKET
+	| ENUM IDENTIFIER LEFT_BRACKET enumerator_list RIGHT_BRACKET
+	| ENUM IDENTIFIER LEFT_BRACKET enumerator_list COMMA RIGHT_BRACKET
+	| ENUM IDENTIFIER
+	;
+
+enumerator_list
+	::= enumerator
+	| enumerator_list COMMA enumerator
+	;
+
+enumerator	/* identifiers must be flagged as ENUMERATION_CONSTANT */
+	::= enumeration_constant ASSIGNMENT constant_expression
+	| enumeration_constant
+	;
+
+atomic_type_specifier
+	::= ATOMIC LEFT_PARENTESIS type_name RIGHT_PARENTESIS
+	;
+
+type_qualifier
+	::= CONST
+	| RESTRICT
+	| VOLATILE
+	| ATOMIC
+	;
+
+function_specifier
+	::= INLINE
+	| NORETURN
+	;
+
+alignment_specifier
+	::= ALIGNAS LEFT_PARENTESIS type_name RIGHT_PARENTESIS
+	| ALIGNAS LEFT_PARENTESIS constant_expression RIGHT_PARENTESIS
+	;
+
+declarator
+	::= pointer direct_declarator 
+	| direct_declarator:dd {: RESULT = dd; Console.logNT("400 <direct_declarator:dd> " + dd); :}
+	;
+
+direct_declarator
+	::= IDENTIFIER:i {: RESULT = i; Console.log("406 <IDENTIFIER:i> " + i); :}
+	| LEFT_PARENTESIS declarator RIGHT_PARENTESIS 
+	| direct_declarator LEFT_SQ_BRACK RIGHT_SQ_BRACK
+	| direct_declarator LEFT_SQ_BRACK TIMES RIGHT_SQ_BRACK
+	| direct_declarator LEFT_SQ_BRACK STATIC type_qualifier_list assignment_expression RIGHT_SQ_BRACK
+	| direct_declarator LEFT_SQ_BRACK STATIC assignment_expression RIGHT_SQ_BRACK
+	| direct_declarator LEFT_SQ_BRACK type_qualifier_list TIMES RIGHT_SQ_BRACK
+	| direct_declarator LEFT_SQ_BRACK type_qualifier_list STATIC assignment_expression RIGHT_SQ_BRACK
+	| direct_declarator LEFT_SQ_BRACK type_qualifier_list assignment_expression RIGHT_SQ_BRACK
+	| direct_declarator LEFT_SQ_BRACK type_qualifier_list RIGHT_SQ_BRACK
+	| direct_declarator:dd LEFT_SQ_BRACK assignment_expression:ae RIGHT_SQ_BRACK {: RESULT = dd; parser.sAnalyser.checkTypeOfSizeArray(ae); parser.cGenerator.nextArraySize = ((Type)ae).getValue(); Console.logNT("416 <LEFT_SQ_BRACK assignment_expression:ae RIGHT_SQ_BRACK> [ " + ae + " ]");:}
+	| direct_declarator:dd LEFT_PARENTESIS {: parser.sAnalyser.mudaEscopo(); :} parameter_type_list:ptl RIGHT_PARENTESIS {: RESULT = dd; parser.sAnalyser.addMetodoEParametros((String)dd, parser.sAnalyser.localVariables); parser.cGenerator.createMethodAndParams((String)dd, parser.sAnalyser.localVariables); Console.logNT("417 <direct_declarator LEFT_PARENTESIS parameter_type_list RIGHT_PARENTESIS> " + dd + " " + ptl); :}
+	| direct_declarator:dd LEFT_PARENTESIS {: parser.sAnalyser.mudaEscopo(); :} RIGHT_PARENTESIS {: RESULT = dd; parser.sAnalyser.addMetodoEParametros((String)dd, null); parser.cGenerator.createMethodAndParams((String)dd, null); Console.log("418 <direct_declarator:dd> " + dd); :}
+	| direct_declarator LEFT_PARENTESIS identifier_list RIGHT_PARENTESIS 
+	;
+
+pointer
+	::= TIMES type_qualifier_list pointer
+	| TIMES type_qualifier_list
+	| TIMES pointer
+	| TIMES
+	;
+
+type_qualifier_list
+	::= type_qualifier
+	| type_qualifier_list type_qualifier
+	;
+
+
+parameter_type_list
+	::= parameter_list COMMA ELLIPSIS
+	| parameter_list:pl {: RESULT = pl; Console.log("435 <parameter_list:pl> " + pl); :}
+	;
+
+parameter_list
+	::= parameter_declaration:pd {: RESULT = pd; Console.log("439 <parameter_declaration:pd> " + pd); :}
+	| parameter_list:pl COMMA parameter_declaration:pd {: Console.log("440"); :}
+	;
+
+parameter_declaration
+	::= declaration_specifiers:ds declarator:d {: ((Type)ds).setOwnerId((String)d); parser.sAnalyser.addLocalvariable((String)d, (Type)ds); Console.log("444 <declaration_specifiers declarator> " + ds + " " + d); :}
+	| declaration_specifiers abstract_declarator 
+	| declaration_specifiers 
+	;
+
+identifier_list
+	::= IDENTIFIER
+	| identifier_list COMMA IDENTIFIER
+	;
+
+type_name
+	::= specifier_qualifier_list abstract_declarator
+	| specifier_qualifier_list
+	;
+
+abstract_declarator
+	::= pointer direct_abstract_declarator
+	| pointer
+	| direct_abstract_declarator
+	;
+
+direct_abstract_declarator
+	::= LEFT_PARENTESIS abstract_declarator RIGHT_PARENTESIS
+	| LEFT_SQ_BRACK RIGHT_SQ_BRACK
+	| LEFT_SQ_BRACK TIMES RIGHT_SQ_BRACK
+	| LEFT_SQ_BRACK STATIC type_qualifier_list assignment_expression RIGHT_SQ_BRACK
+	| LEFT_SQ_BRACK STATIC assignment_expression RIGHT_SQ_BRACK
+	| LEFT_SQ_BRACK type_qualifier_list STATIC assignment_expression RIGHT_SQ_BRACK
+	| LEFT_SQ_BRACK type_qualifier_list assignment_expression RIGHT_SQ_BRACK
+	| LEFT_SQ_BRACK type_qualifier_list RIGHT_SQ_BRACK
+	| LEFT_SQ_BRACK assignment_expression RIGHT_SQ_BRACK
+	| direct_abstract_declarator LEFT_SQ_BRACK RIGHT_SQ_BRACK
+	| direct_abstract_declarator LEFT_SQ_BRACK TIMES RIGHT_SQ_BRACK
+	| direct_abstract_declarator LEFT_SQ_BRACK STATIC type_qualifier_list assignment_expression RIGHT_SQ_BRACK
+	| direct_abstract_declarator LEFT_SQ_BRACK STATIC assignment_expression RIGHT_SQ_BRACK
+	| direct_abstract_declarator LEFT_SQ_BRACK type_qualifier_list assignment_expression RIGHT_SQ_BRACK
+	| direct_abstract_declarator LEFT_SQ_BRACK type_qualifier_list STATIC assignment_expression RIGHT_SQ_BRACK
+	| direct_abstract_declarator LEFT_SQ_BRACK type_qualifier_list RIGHT_SQ_BRACK
+	| direct_abstract_declarator LEFT_SQ_BRACK assignment_expression RIGHT_SQ_BRACK
+	| LEFT_PARENTESIS RIGHT_PARENTESIS
+	| LEFT_PARENTESIS parameter_type_list RIGHT_PARENTESIS
+	| direct_abstract_declarator LEFT_PARENTESIS RIGHT_PARENTESIS
+	| direct_abstract_declarator LEFT_PARENTESIS parameter_type_list RIGHT_PARENTESIS
+	;
+
+initializer
+	::= LEFT_BRACKET initializer_list:il RIGHT_BRACKET {: RESULT = il; Console.logNT("490 <LEFT_BRACKET initializer_list:il RIGHT_BRACKET> { " + il + " }"); :}
+	| LEFT_BRACKET initializer_list COMMA RIGHT_BRACKET 
+	| assignment_expression:ae {: RESULT = ae; Console.logNT("492 <assignment_expression:ae> " + ae); :}
+	;
+
+initializer_list
+	::= designation initializer
+	| initializer:i {: RESULT = i; Console.logNT("497 <initializer:i> " + i); :}
+	| initializer_list COMMA designation initializer 
+	| initializer_list:il COMMA initializer:i {: RESULT = il; parser.sAnalyser.checkConsistencyInsideArray(il, i); Console.logNT("499 <initializer_list:il COMMA initializer:i> [ " + il + " , " + i + " ]" ); :}
+	;
+
+designation
+	::= designator_list ASSIGNMENT
+	;
+
+designator_list
+	::= designator
+	| designator_list designator
+	;
+
+designator
+	::= LEFT_SQ_BRACK constant_expression RIGHT_SQ_BRACK
+	| DOT IDENTIFIER
+	;
+
+static_assert_declaration
+	::= STATIC_ASSERT LEFT_PARENTESIS constant_expression COMMA STRING_LITERAL RIGHT_PARENTESIS SEMICOLON
+	;
+
+statement
+	::= labeled_statement:ls {: RESULT = new Type("void"); Console.logNT("521 <labeled_statement:ls> " + ls); :}
+	| compound_statement:cs {: RESULT = new Type("void"); Console.logNT("522 <compound_statement:cs> " + cs); :}
+	| expression_statement:es {: RESULT = new Type("void"); Console.logNT("523 <expression_statement:es> " + es); :}
+	| {: parser.sAnalyser.isIF = true; parser.sAnalyser.isIF2 = true; :} selection_statement:ss {: RESULT = new Type("void"); parser.sAnalyser.isIF = false; Console.logNT("524 <selection_statement:ss> " + ss); :}
+	| iteration_statement:is {: RESULT = new Type("void"); Console.logNT("525 <iteration_statement:is> " + is); :}
+	| jump_statement:js {: RESULT = js; Console.log("526 <jump_statement:js> " + js); :}
+	;
+
+labeled_statement
+	::= IDENTIFIER COLON statement
+	| CASE constant_expression COLON statement
+	| DEFAULT COLON statement
+	;
+
+compound_statement
+	::= LEFT_BRACKET RIGHT_BRACKET {: RESULT = new Type("void"); if(!parser.sAnalyser.isIF) parser.sAnalyser.mudaEscopo(); Console.log("536 <LEFT_BRACKET RIGHT_BRACKET>"); :}
+	| LEFT_BRACKET block_item_list:bil RIGHT_BRACKET {: RESULT = bil; if(!parser.sAnalyser.isIF) parser.sAnalyser.mudaEscopo(); Console.log("537 <block_item_list:bil> { " + bil + " }"); :}
+	;
+
+block_item_list
+	::= block_item:bi {: RESULT = bi; Console.logNT("541 <block_item:bi> " + bi); :}
+	| block_item_list:bil block_item:bi {: RESULT = bi; Console.logNT("542 <block_item_list:bil block_item:bi> " + bil + " " + bi); :}
+	;
+
+block_item
+	::= declaration:d {: RESULT = new Type("void"); Console.logNT("546 <declaration:d> " + d); :}
+	| statement:s {: RESULT = s; Console.logNT("547 <statement:s> " + s); :}
+	;
+
+expression_statement
+	::= SEMICOLON
+	| expression:e SEMICOLON {: RESULT = e; Console.logNT("554 <expression:e> " + e); :}
+	;
+
+selection_statement
+	::= IF LEFT_PARENTESIS expression:e RIGHT_PARENTESIS statement ELSE {: parser.cGenerator.setPositionStartElse(); :} statement	{: Console.logNT("558 IF LEFT_PARENTESIS expression:e RIGHT_PARENTESIS statement ELSE statement"); parser.sAnalyser.isSelectionStatementOK((Type) e); :}
+	| IF LEFT_PARENTESIS expression:e RIGHT_PARENTESIS statement					{: parser.cGenerator.setPositionStartElse(); parser.sAnalyser.isSelectionStatementOK((Type) e); :}
+	| SWITCH LEFT_PARENTESIS expression:e RIGHT_PARENTESIS statement
+	;
+
+iteration_statement
+	::= WHILE LEFT_PARENTESIS expression RIGHT_PARENTESIS statement
+	| DO statement WHILE LEFT_PARENTESIS expression RIGHT_PARENTESIS SEMICOLON
+	| FOR LEFT_PARENTESIS expression_statement expression_statement RIGHT_PARENTESIS statement
+	| FOR LEFT_PARENTESIS expression_statement expression_statement expression RIGHT_PARENTESIS statement
+	| FOR LEFT_PARENTESIS declaration expression_statement RIGHT_PARENTESIS statement
+	| FOR LEFT_PARENTESIS declaration expression_statement expression RIGHT_PARENTESIS statement
+	;
+
+jump_statement
+	::= GOTO IDENTIFIER SEMICOLON
+	| CONTINUE SEMICOLON
+	| BREAK SEMICOLON
+	| RETURN SEMICOLON {: RESULT = new Type("void"); parser.sAnalyser.mudaEscopo(); Console.log("574 <RETURN SEMICOLON>"); :}
+	| RETURN expression:e SEMICOLON {: RESULT = e; parser.sAnalyser.mudaEscopo(); Console.logNT("575 <RETURN expression:e SEMICOLON> " + e); :}
+	;
+
+translation_unit
+	::= includes
+	| external_declaration:ed {: RESULT = ed; Console.logNT("580 <external_declaration:ed> " + ed); :}
+	| translation_unit:tu external_declaration:ed {: Console.logNT("581 <translation_unit:tu external_declaration:ed> " + tu + ed); :}
+	;
+
+external_declaration
+	::= declaration:d {: RESULT = d; Console.logNT("585 <declaration:d> " + d); :}
+	| function_definition:fd {: RESULT = fd; Console.logNT("586 <function_definition:fd> " + fd); :}
+	;
+
+function_definition
+	::= declaration_specifiers:ds declarator:d declaration_list:dl compound_statement:cs 
+	| declaration_specifiers:ds declarator:d compound_statement:cs {: Console.log("591 <declaration_specifiers:ds> " + ds + " <declarator:d> " + d + " <compound_statement:cs> " + cs); parser.sAnalyser.addMetodo((String)d, (Type)ds); parser.sAnalyser.checkTipoDeRetornoMetodo((Type)ds, (Type)cs); parser.cGenerator.finalizeMethod((Type)cs); :}
+	;
+
+declaration_list
+	::= declaration
+	| declaration_list declaration
+	;

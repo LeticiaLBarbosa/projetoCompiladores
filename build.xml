@@ -12,11 +12,11 @@
     <mkdir dir="${dist}"/>
   </target>
 
-  <taskdef name="jflex" classname="JFlex.anttask.JFlexTask" classpath="${tools}/jflex-1.6.1.jar" />
+    <taskdef name="jflex" classname="jflex.anttask.JFlexTask" classpath="${tools}/jflex-1.6.1.jar" />
   <taskdef name="cup" classname="java_cup.anttask.CUPTask"  classpath="${tools}/java-cup-11b.jar" />
 
   <target name="generate" depends="init">
-    <jflex file="${jflex}/Scanner.jflex"  destdir="${src}" />
+    <jflex file="/jflex/Scanner.flex" destdir="${src}" />
     <cup srcfile="${cup}/Parser.cup"      destdir="${src}" 
          interface="true" parser="Parser" locations="true"   />
   </target>
