@@ -1,4 +1,4 @@
-﻿Java Compiler Project
+Java Compiler Project
 ====================
 
 This is just a project to exercise the concepts and theory of compilers. This is a JAVA compiler and it will be built using JFlex and Cup.

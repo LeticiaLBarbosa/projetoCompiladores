@@ -1,60 +1,63 @@
-<project name="Compiler" default="jar" basedir=".">
-  <property name="cup"     location="cup"     />
-  <property name="jflex"   location="jflex"    />
-  <property name="src"     location="src"     />
-  <property name="classes" location="bin" />
-  <property name="dist"    location="dist"    />
-  <property name="lib"     location="lib"     />
-  <property name="tools"   location="tools"     />
+<!--
+Java Compiler Project
 
-  <target name="init">
-    <mkdir dir="${classes}"/>
+Date:
+    2016-Ago-29
+
+-->
+<project name="projetoCompiladores" basedir="." default="jar">
+
+  <!-- PROPERTIES -->
+  <property file="build.properties"/>
+
+  <!-- TASKs -->
+
+  <target name="clean">
+    <delete file="${scanner.java}"/>
+    <delete file="${parser.java}"/>
+    <delete file="${sym.java}"/>
+    <delete dir="${bin}"/>
+    <delete dir="${dist}"/>
+  </target>
+
+  <target name="init" depends="clean">
+    <mkdir dir="${bin}"/>
     <mkdir dir="${dist}"/>
   </target>
 
-    <taskdef name="jflex" classname="jflex.anttask.JFlexTask" classpath="${tools}/jflex-1.6.1.jar" />
-  <taskdef name="cup" classname="java_cup.anttask.CUPTask"  classpath="${tools}/java-cup-11b.jar" />
-
-  <target name="generate" depends="init">
-    <jflex file="/jflex/Scanner.flex" destdir="${src}" />
-    <cup srcfile="${cup}/Parser.cup"      destdir="${src}" 
-         interface="true" parser="Parser" locations="true"   />
-  </target>
-
-  
-  <path id="libraries">
-    <files includes="${lib}/java-cup-11b-runtime.jar" />
-  </path>
-  <target name="compile" depends="generate">
-    <javac srcdir="${src}" destdir="${classes}">
-      <classpath refid="libraries" />
-    </javac>
-  </target>
-
-  <target name="jar" depends="compile">
-    <jar jarfile="${dist}/Compiler.jar" basedir="${classes}">
-     <manifest>
-       <attribute name="Main-Class" value="Example.Parser" />
-       <attribute name="Class-Path" value="java-cup-11b-runtime.jar" />
-     </manifest>
-    </jar>
-    <copy todir="${dist}">
-	<fileset dir="${lib}" includes="**/**.jar"/>
-    </copy>
-  </target>
-
-  <!-- Test the parser in a single run -->
-  <target name="run" depends="jar">
-    <java jar="${dist}/Compiler.jar" fork="true">
-      <arg value="input.test" />
+  <target name="jflex" depends="init">
+    <java jar="${jflex.jar}" fork="true">
+      <arg line="${jflex.args}"/>
     </java>
   </target>
 
-  <target name="clean">
-    <delete file="${src}/Example/Scanner.java" />
-    <delete file="${src}/Example/Parser.java" />
-    <delete file="${src}/Example/sym.java" />
-    <delete dir="${classes}" />
-    <delete dir="${dist}" />
+  <target name="cup">
+	<java jar="${cup.jar}" fork="true">
+	  <arg line="${cup.args}"/>
+	</java>
   </target>
+
+  <target name="generate" depends="jflex, cup">
+    <echo message="Executed JFlex and CUP tasks"/>
+  </target>
+
+  <target name="compile" depends="generate">
+    <javac srcdir="${src}" destdir="${bin}" includeantruntime="false">
+	  <classpath>
+	    <fileset dir="${libs}">
+		  <include name="**/*.jar"/>
+		</fileset>
+	  </classpath>
+	</javac>
+  </target>
+
+  <target name="jar" depends="compile">
+    <jar destfile="${jar.dist}" basedir="${bin}">
+      <zipgroupfileset dir="${libs}" includes="java-cup-11a.jar"/>
+      <manifest>
+        <attribute name="Main-Class" value="${main.class}"/>
+      </manifest>
+    </jar>
+  </target>
+
 </project>
