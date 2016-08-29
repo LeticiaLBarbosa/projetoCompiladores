@@ -9,4 +9,5 @@
 /workspace.xml
  /.idea/libraries  
 /.idea/workspace.xml 
-/.idea/libraries out/ .idea/ 
+/.idea/libraries out/ .idea/ .idea
+.idea
