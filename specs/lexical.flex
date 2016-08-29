@@ -52,9 +52,8 @@ import java_cup.runtime.*;
 %}
 
 /* identifiers */
-Identifier = [:jletter:][:jletterdigit:]*
+Identifier = {Letter_}({Letter}|{Alphanumerics_})*
 
-/* white spaces*/
 LineTerminator = \r|\n|\r\n
 WhiteSpace = {LineTerminator} | [ \t\f]
 
@@ -64,14 +63,15 @@ IntegerLiteral = 0 | [1-9][0-9]*
 /* floats */
 FloatLiteral = {IntegerLiteral}"."{IntegerLiteral}
 
-Marker = [\"]
+Marker = \" | \'
 Other_Symbols = \*|\+|\[|\]|\!|\£|\$|\%|\&|\=|\?|\^|\-|\°|\#|\@|\:|\(|\)
 Separators = \r|\n|\r\n\t\f
+Letter = [a-zA-Z]
+Letter_ = {Letter}|_
 Alphanumerics_ = [ a-zA-Z0-9_]
-temp = [ \*|\+|\[|\]|\!|\£|\$|\%|\&|\=|\?|\^|\-|\°|\#|\@|\:|\(|\)|\"|\r|\n|\r\n\t\f a-zA-Z0-9_]*
 
-StringLiteral = {Marker}   {temp}   {Marker}
-StringContent =  {Alphanumerics_}*StringContent | {Other_Symbols}*StringContent | {Separators}*StringContent /*Fixme: Doesn't work, it obtains stack overflow*/
+StringLiteral = {Marker}   {StringContent}   {Marker}
+StringContent =  {Alphanumerics_}*StringContent | {Other_Symbols}*StringContent | {Separators}*StringContent
 
 Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
 
@@ -150,8 +150,10 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
   "["                            { return symbol(sym.LBRACK); }
   "]"                            { return symbol(sym.RBRACK); }
   ";"                            { return symbol(sym.SEMICOLON); }
+  ":"                            { return symbol(sym.COLON); }
   ","                            { return symbol(sym.COMMA); }
   "."   		  				 { return symbol(sym.DOT); }
+  "?"                            { return symbol(sym.QUESTION); }
 
  /* TODO string literal */
   {StringLiteral}                { return symbol(sym.STRING_LITERAL,new String(yytext())); }
@@ -159,24 +161,24 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
  /* White spaces */
   {WhiteSpace}					 { /* just ignore it*/}
 
- /* attr operator */
- 	"="							 {return symbol(sym.EQ);}
 
 /* arithmetical operators*/
   "+" 							 {return symbol(sym.PLUS);}
   "-" 							 {return symbol(sym.MINUS);}
   "*" 							 {return symbol(sym.MULT);}
   "/"						     {return symbol(sym.DIV);}
-  "++"							 {return symbol(sym.PLUSPLUS);}
-  "--"							 {return symbol(sym.MINUSMINUS);}
   "%"						     {return symbol(sym.MOD);}
-  ">>>"							 {return symbol(sym.URSHIFT);}
-  "<<"							 {return symbol(sym.LSHIFT);}
-  ">>"							 {return symbol(sym.RSHIFT);}
+
+
+
+/*unary operators*/
+  "++"							 {return symbol(sym.AUTOINCRM);}
+  "--"							 {return symbol(sym.AUTODECRM);}
+
 
 /* assignment operators*/
- "-="                            { return symbol(sym.MINUSASSIGN, new String(yytext())); }
  "="                             { return symbol(sym.ASSIGNMENT, new String(yytext())); }
+ "-="                            { return symbol(sym.MINUSASSIGN, new String(yytext())); }
  "+="                            { return symbol(sym.PLUSASSIGN, new String(yytext())); }
  "*="                            { return symbol(sym.MULTASSIGN); }
  "/="                            { return symbol(sym.DIVASSIGN); }
@@ -201,6 +203,10 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
  "!="							 {return symbol(sym.NOTEQ);}
  "|"							 {return symbol(sym.OR);}
  "^"						     {return symbol(sym.XOR);}
+ ">>>"							 {return symbol(sym.URSHIFT);}
+ "<<"							 {return symbol(sym.LSHIFT);}
+ ">>"							 {return symbol(sym.RSHIFT);}
+
 
 
  /* check how to consider those later
