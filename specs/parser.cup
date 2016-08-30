@@ -85,7 +85,7 @@ non terminal variable_initializer;
 
 /* Rules */
 
-start with compilation_unit;
+    start with compilation_unit;
 
 compilation_unit ::=
     package_statement
@@ -304,132 +304,148 @@ numeric_expression ::=
     expression
 ;
 
+testing_expression ::=
+    expression
+    GT
+    | LT
+    | GTEQ
+    | LTEQ
+    | EQEQ
+    | NOTEQ
+    expression
+;
 
+logical_expression ::=
+    NOT expression
+    | expression
+    AND
+    | ANDASSIGN
+    | OR
+    | ORASSIGN
+    | XOR
+    | XORASSIGN
+    | ANDAND
+    | MOD
+    | MODASSIGN
+    expression
+    | expression QUESTION expression COLON expression
+    | TRUE
+    | FALSE
+;
+
+string_expression ::=
+    expression
+    PLUS
+    | PLUSASSIGN
+    expression
+;
+
+bit_expression ::=
+    NEG_BINARY expression
+    | expression
+    RSHIFTASSIGN
+    | LSHIFT
+    | RSHIFT
+    | URSHIFT
+    expression
+;
+
+casting_expression ::=
+    LPAREN type RPAREN expression
+;
+
+creating_expression ::=
+    NEW class_name LPAREN arglist RPAREN
+    | type_specifier LBRACK expression RBRACK LBRACK RBRACK
+    | LPAREN expression RPAREN
+;
+
+literal_expression ::=
+    integer_literal
+    | float_literal
+    |string
+    |character
+;
+
+arglist ::=
+    expression COMMA expression
+;
+
+type ::=
+    type_specifier LBRACK RBRACK
+;
+
+type_specifier ::=
+    BOOLEAN
+    | BYTE
+    | CHAR
+    | SHORT
+    | INT
+    | FLOAT
+    | LONG
+    |DOUBLE
+    | class_name
+    | interface_name
+;
+
+modifier ::=
+    PUBLIC
+    | PRIVATE
+    | PROTECTED
+    | STATIC
+    | FINAL
+    | NATIVE
+    | SYNCHRONIZED
+    | ABSTRACT
+    | THREADSAFE
+    | TRANSIENT
+;
+
+package_name ::=
+    identifier
+    | package_name DOT identifier
+;
+
+class_name ::=
+    identifier
+    | package_name DOT identifier
+;
+
+interface_name ::=
+    identifier
+    | package_name DOT identifier
+;
+
+integer_literal ::=
+//TODO
+;
+
+float_literal ::=
+    decimal_digits DOT decimal_digits exponent_part float_type_suffix
+    | DOT decimal_digits exponent_part float_type_suffix
+    | decimal_digits exponent_part float_type_suffix
+;
+
+decimal_digits ::=
+//TODO
+;
+
+exponent_part ::=
+    E PLUS | MINUS decimal_digits
+;
+
+float_type_suffix ::=
+    F
+    | D
+;
+
+character ::=
+//TODO
+;
+
+string ::=
 //TODO
 
-//testing_expression ::=
-// ( expression
-// (  ">"
-// |  "<"
-// |  ">="
-// |  "<="
-// |  "=="
-// |  "!="  )
-//expression  )  .
-//
-//logical_expression  =
-// (  "!" expression )
-// |  ( expression
-// (  "ampersand"
-// |  "ampersand="
-// |  "|"
-// |  "|="
-// |  "^"
-// |  "^="
-// |  (  "ampersand"  "ampersand"  )
-// |  "||="
-// |  "%"
-// |  "%="  )
-//expression  )
-// |  ( expression  "?" expression  COLON expression )
-// |  "true"
-// |  "false"  .
-//
-//string_expression  =  ( expression
-// (  "+"
-// |  "+="  )
-//expression  )  .
-//
-//bit_expression  =
-// (  "~" expression )
-// |  ( expression
-// (  ">>="
-// |  "<<"
-// |  ">>"
-// |  ">>>"  )
-//expression  )  .
-//
-//casting_expression  =
-// LPAREN type  RPAREN expression  .
-//
-//creating_expression  =
-// "new"  (  ( classe_name  LPAREN  [ arglist ]  RPAREN  )
-// |  ( type_specifier  [  LBRACK expression  RBRACK  ]  <  LBRACK  RBRACK  >  )
-// |  (  LPAREN expression  RPAREN  )  )  .
-//
-//literal_expression  =
-//integer_literal
-// | float_literal
-// | string
-// | character  .
-//
-//arglist  =
-//expression  <  COMMA expression  >  .
-//
-//type  =
-//type_specifier  <  LBRACK  RBRACK  >  .
-//
-//type_specifier =
-// "boolean"
-// |  "byte"
-// |  "char"
-// |  "short"
-// |  "int"
-// |  "float"
-// |  "long"
-// |  "double"
-// | class_name
-// | interface_name  .
-//
-//modifier =
-// "public"
-// |  "private"
-// |  "protected"
-// |  "static"
-// |  "final"
-// |  "native"
-// |  "synchronized"
-// |  "abstract"
-// |  "threadsafe"
-// |  "transient"  .
-//
-//package_name =
-//identifier
-// |  ( package_name  DOT identifier )  .
-//
-//class_name  =
-//identifier
-// |  ( package_name  DOT identifier )  .
-//
-//interface_name =
-//identifier
-// |  ( package_name  DOT identifier )  .
-//
-//integer_literal =
-// (  (  "1..9"  <  "0..9"  >  )
-// |  <  "0..7"  >
-// |  (  "0"  "x"  "0..9a..f"  <  "0..9a..f"  >  )  )
-// [  "l"  ]  .
-//
-//float_literal  =
-// ( decimal_digits  DOT  [ decimal_digits ]  [ exponent_part ]  [ float_type_suffix ]  )
-// |  (  DOT decimal_digits  [ exponent_part ]  [ float_type_suffix ]  )
-// |  ( decimal_digits  [ exponent_part ]  [ float_type_suffix ]  )  .
-//
-//decimal_digits  =
-// "0..9"  <  "0..9"  >  .
-//
-//exponent_part  =
-// "e"  [  "+"  |  MINUS  ] decimal_digits  .
-//
-//float_type_suffix  =
-// "f"  |  "d"  .
-//
-//character  =
-//  "based on the unicode character set"  .
-//
-//string  =
-// "''"  < character  >  "''"  .
-//
-//identifier  =
-//  "a..z,$,_"  <  "a..z,$,_,0..9,unicode character over 00C0"  >  .
+identifier ::=
+//TODO
+;
