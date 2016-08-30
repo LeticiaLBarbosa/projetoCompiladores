@@ -3,8 +3,6 @@
  */
 package compiler.analysis.generated;
 import java_cup.runtime.*;
-import util.*;
-import core.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,7 +73,7 @@ terminal java.lang.String IDENTIFIER;
 /* Non terminals*/
 non terminal compilation_unit, package_statement, import_statement, type_declaration, package_name, identifier;
 non terminal interface_name, doc_comment, class_declaration, interface_declaration, modifier, class_name;
-non terminal field_declaration, method_declaration, constructor_declararion, variable_declaration;
+non terminal field_declaration, method_declaration, constructor_declaration, variable_declaration;
 non terminal static_initializer, type, parameter_list, statement_block, type_specifier, parameter, statement;
 non terminal expression, if_statement, do_statement, while_statement, for_statement, try_statement, switch_statement;
 non terminal numeric_expression, testing_expression, logical_expression, string_expression, bit_expression;
@@ -194,7 +192,7 @@ statement_block ::=
 ;
 
 variable_declarator ::=
-    identifier LBRACK RBRACK EQ variable_initializer
+    identifier LBRACK RBRACK ASSIGNMENT variable_initializer
 ;
 
 type_specifier ::=
@@ -291,7 +289,7 @@ expression ::=
 
 numeric_expression ::= 
     MINUS
-    | AUTOINCRMA
+    | AUTOINCRM
     | AUTODECRM
     expression
     | expression
