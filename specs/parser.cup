@@ -70,7 +70,7 @@ terminal java.lang.Number FLOATING_POINT_LITERAL;
 terminal java.lang.Boolean BOOLEAN_LITERAL;
 terminal java.lang.Character CHARACTER_LITERAL;
 terminal java.lang.String STRING_LITERAL;
-terminal java.lang.String IDENTIFIER; // name
+terminal java.lang.String IDENTIFIER;
 
 /* Non terminals*/
 non terminal compilation_unit, package_statement, import_statement, type_declaration, package_name, identifier;
@@ -83,9 +83,16 @@ non terminal casting_expression, creating_expression, literal_expression, arglis
 non terminal string, character, decimal_digits, exponent_part, float_type_suffix, variable_declarator;
 non terminal variable_initializer;
 
+/* Precedences */
+
+precedence nonassoc DOT, LPAREN, LBRACK;
+
+precedence left PLUS, MINUS;
+precedence left DIV;
+
 /* Rules */
 
-    start with compilation_unit;
+start with compilation_unit;
 
 compilation_unit ::=
     package_statement
@@ -417,7 +424,7 @@ interface_name ::=
 ;
 
 integer_literal ::=
-//TODO
+    INTEGER_LITERAL
 ;
 
 float_literal ::=
@@ -427,7 +434,7 @@ float_literal ::=
 ;
 
 decimal_digits ::=
-//TODO
+    D // definido na macros mas ainda não sei se ta correto.
 ;
 
 exponent_part ::=
@@ -440,12 +447,13 @@ float_type_suffix ::=
 ;
 
 character ::=
-//TODO
+    CHARACTER_LITERAL
 ;
 
 string ::=
-//TODO
+    STRING_LITERAL
+;
 
 identifier ::=
-//TODO
+    IDENTIFIER
 ;

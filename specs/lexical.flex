@@ -8,7 +8,7 @@ import java_cup.runtime.*;
 
 %%
 
-%class Scanner
+%class parser
 %unicode
 %line
 %public
@@ -50,6 +50,15 @@ import java_cup.runtime.*;
       throw new RuntimeException("Lexical error at line #" + line + ": " + msg);
   }
 %}
+
+/* macros */
+
+D = [0-9]
+L = [a-zA-Z_]
+H = [a-fA-F0-9]
+E = [Ee][+-]?{D}+
+FS = (f|F|l|L)
+IS = (u|U|l|L)*
 
 /* identifiers */
 Identifier = {Letter_}({Letter}|{Alphanumerics_})*
@@ -218,6 +227,7 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
   "f"							 { return symbol(sym.F);}
   "l"							 { return symbol(sym.L);}
 
+  {D}+{IS}?       { return symbol(sym.INTEGER, new String(yytext())); }
 
  }
 
