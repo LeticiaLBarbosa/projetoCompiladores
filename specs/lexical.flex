@@ -147,7 +147,7 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
   {IntegerLiteral}               { return symbol(sym.INTEGER_LITERAL, new String(yytext()));}
 
 /* character literal */
-  \'                             { return symbol(sym.CHARLITERAL); }
+  '\'                             { return symbol(sym.CHARLITERAL); }
 
 /* Comments*/
   {Comment}                      { /* just ignore it */ }

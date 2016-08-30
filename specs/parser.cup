@@ -42,7 +42,7 @@ terminal PUBLIC, PRIVATE, PROTECTED, STATIC, FINAL, NATIVE, SYNCHRONIZED, ABSTRA
 terminal LBRACE, RBRACE;
 terminal LPAREN, RPAREN;
 terminal LBRACK, RBRACK;
-terminal BOOLEAN, BYTE, CHAR, SHORT, INT, FLOAT, LONG, DOUBLE;
+terminal BOOLEAN, BYTE, CHAR, SHORT, INT, FLOAT, LONG, DOUBLE, VOID;
 terminal RETURN, THROW, BREAK, CONTINUE;
 terminal NULL, SUPER, THIS;
 terminal INSTANCEOF;
@@ -51,10 +51,10 @@ terminal ASSIGNMENT, PLUSASSIGN, MINUSASSIGN, MULTASSIGN, DIVASSIGN, MODASSIGN;
 terminal GT, LT, GTEQ, LTEQ, EQEQ, NOTEQ;
 terminal NOT, AND, OR, XOR;
 terminal ANDASSIGN, ORASSIGN, XORASSIGN;
-terminal ANDAND;
+terminal ANDAND, OROR;
 terminal TRUE, FALSE;
 terminal NEG_BINARY, LSHIFT, RSHIFT, URSHIFT;
-terminal RSHIFTASSIGN;
+terminal RSHIFTASSIGN, LSHIFTASSIGN;
 terminal NEW;
 terminal X, F, L, E, D;
 terminal IF, ELSE;
@@ -66,7 +66,7 @@ terminal INTERFACE;
 terminal java.lang.Number INTEGER_LITERAL;
 terminal java.lang.Number FLOATING_POINT_LITERAL;
 terminal java.lang.Boolean BOOLEAN_LITERAL;
-terminal java.lang.Character CHARACTER_LITERAL;
+terminal java.lang.Character CHARLITERAL;
 terminal java.lang.String STRING_LITERAL;
 terminal java.lang.String IDENTIFIER;
 
@@ -445,7 +445,7 @@ float_type_suffix ::=
 ;
 
 character ::=
-    CHARACTER_LITERAL
+    CHARLITERAL
 ;
 
 string ::=
