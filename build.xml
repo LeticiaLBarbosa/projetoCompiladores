@@ -37,7 +37,7 @@ Date:
 	</java>
   </target>
 
-  <target name="generate" depends="jflex, cup">
+  <target name="generate" depends="jflex, clean, cup">
     <echo message="Executed JFlex and CUP tasks"/>
   </target>
 

@@ -9,12 +9,12 @@ import java_cup.runtime.*;
 %%
 
 %class Scanner
-%public
 %unicode
 %line
+%public
 %column
 %cup
-
+%cupdebug
 
 %{
 
