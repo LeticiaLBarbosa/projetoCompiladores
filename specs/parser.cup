@@ -1,43 +1,231 @@
 /**
  * Syntax Specification
  */
-package compiler.generated;
+package compiler.analysis.generated;
 import java_cup.runtime.*;
 import util.*;
 import core.*;
 import java.util.ArrayList;
 import java.util.List;
 
-init with {: SemanticAnalysis.parser = this;              :};
+init with {:
+    SemanticAnalysis.parser = this;
+:};
 
 parser code {:
 
     public void report_error(String message, Object info) {
 
-        StringBuffer m = new StringBuffer("Error");
+        StringBuffer internal_message = new StringBuffer("Error");
 
         if (info instanceof java_cup.runtime.Symbol) {
-            java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
-            if (s.left >= 0) {
-                /* Add to the end of the StringBuffer error message
-                   the line number of the error in the input. */
-                m.append(" in line "+(s.left+1));
-                /* Check if the column number in the input is greater
-                   or equal to zero. */
-                if (s.right >= 0)
-                    /* Add to the end of the StringBuffer error message
-                       the column number of the error in the input. */
-                    m.append(", column "+(s.right+1));
+            java_cup.runtime.Symbol symbol = ((java_cup.runtime.Symbol) info);
+            if (symbol.left >= 0) {
+                internal_message.append(" in line "+(symbol.left+1));
+                if (symbol.right >= 0)
+                    internal_message.append(", column "+(symbol.right+1));
             }
         }
 
-
-        m.append(" : "+message);
-        System.err.println(m);
+        internal_message.append(" : "+message);
+        System.err.println(internal_message);
     }
 
     public void report_fatal_error(String message, Object info) {
         report_error(message, info);
-        System.exit(1);
+        System.exit(-1);
     }
 :};
+
+/* Terminals */
+terminal PACKAGE;
+terminal SEMICOLON, DOT, COMMA, COLON, QUESTION;
+terminal IMPORT;
+terminal MULT, DIV, MINUS, PLUS, MOD;
+terminal CLASS;
+terminal EXTENDS, IMPLEMENTS;
+terminal PUBLIC, PRIVATE, PROTECTED, STATIC, FINAL, NATIVE, SYNCHRONIZED, ABSTRACT, THREADSAFE, TRANSIENT;
+terminal LBRACE, RBRACE;
+terminal LPAREN, RPAREN;
+terminal LBRACK, RBRACK;
+terminal BOOLEAN, BYTE, CHAR, SHORT, INT, FLOAT, LONG, DOUBLE;
+terminal RETURN, THROW, BREAK, CONTINUE;
+terminal NULL, SUPER, THIS;
+terminal INSTANCEOF;
+terminal AUTOINCRM, AUTODECRM;
+terminal ASSIGNMENT, PLUSASSIGN, MINUSASSIGN, MULTASSIGN, DIVASSIGN, MODASSIGN;
+terminal GT, LT, GTEQ, LTEQ, EQEQ, NOTEQ;
+terminal NOT, AND, OR, XOR;
+terminal ANDASSIGN, ORASSIGN, XORASSIGN;
+terminal ANDAND;
+terminal TRUE, FALSE;
+terminal NEG_BINARY, LSHIFT, RSHIFT, URSHIFT;
+terminal RSHIFTASSIGN;
+terminal NEW;
+terminal X, F, L, E, D;
+terminal IF, ELSE;
+terminal DO, WHILE, FOR;
+terminal TRY, CATCH, FINALLY;
+terminal SWITCH, CASE, DEFAULT;
+terminal INTERFACE;
+
+terminal java.lang.Number INTEGER_LITERAL;
+terminal java.lang.Number FLOATING_POINT_LITERAL;
+terminal java.lang.Boolean BOOLEAN_LITERAL;
+terminal java.lang.Character CHARACTER_LITERAL;
+terminal java.lang.String STRING_LITERAL;
+terminal java.lang.String IDENTIFIER; // name
+
+/* Non terminals*/
+non terminal compilation_unit, package_statement, import_statement, type_declaration, package_name, identifier;
+non terminal interface_name, doc_comment, class_declaration, interface_declaration, modifier, class_name;
+non terminal field_declaration, method_declaration, constructor_declararion, variable_declaration;
+non terminal static_initializer, type, parameter_list, statement_block, type_specifier, parameter, statement;
+non terminal expression, if_statement, do_statement, while_statement, for_statement, try_statement, switch_statement;
+non terminal numeric_expression, testing_expression, logical_expression, string_expression, bit_expression;
+non terminal casting_expression, creating_expression, literal_expression, arglist, integer_literal, float_literal;
+non terminal string, character, decimal_digits, exponent_part, float_type_suffix, variable_declarator;
+non terminal variable_initializer;
+
+/* Rules */
+
+start with compilation_unit;
+
+compilation_unit ::=
+    package_statement
+    import_statement
+    type_declaration
+;
+
+package_statement ::=
+    PACKAGE package_name SEMICOLON
+;
+
+import_statement ::=
+    IMPORT package_name DOT MULT SEMICOLON
+    | class_name | interface_name SEMICOLON
+;
+
+type_declaration ::=
+    doc_comment class_declaration | interface_declaration SEMICOLON
+;
+
+doc_comment ::=
+    // TODO
+;
+
+class_declaration ::=
+    modifier CLASS identifier
+    EXTENDS class_name
+    IMPLEMENTS interface_name COMMA interface_name
+    LBRACE field_declaration RBRACE
+;
+
+package_name ::=
+    identifier
+    | package_name DOT identifier
+;
+
+interface_name ::=
+    identifier
+    | package_name DOT identifier
+;
+
+interface_declaration ::=
+    modifier INTERFACE identifier
+    EXTENDS interface_name COMMA interface_name
+    LBRACE field_declaration RBRACE
+;
+
+modifier ::=
+    PUBLIC
+    | PRIVATE
+    | PROTECTED
+    | STATIC
+    | FINAL
+    | NATIVE
+    | SYNCHRONIZED
+    | ABSTRACT
+    | THREADSAFE
+    | TRANSIENT
+;
+
+field_declaration ::=
+    doc_comment method_declaration
+    | constructor_declaration
+    | variable_declaration
+    | static_initializer
+    | SEMICOLON
+;
+
+method_declaration ::=
+    modifier type identifier
+    LPAREN parameter_list RPAREN LBRACK RBRACK
+    statement_block | SEMICOLON
+;
+
+constructor_declaration ::=
+    modifier identifier LPAREN parameter_list RPAREN
+    statement_block
+;
+
+variable_declaration ::=
+    modifier type variable_declarator
+    COMMA variable_declarator SEMICOLON
+;
+
+static_initializer ::=
+    STATIC statement_block
+;
+
+type ::=
+    type_specifier LBRACK RBRACK
+;
+
+parameter_list ::=
+    parameter COMMA parameter
+;
+
+statement_block ::=
+    LBRACE statement RBRACE
+;
+
+variable_declarator ::=
+    identifier LBRACK RBRACK EQ variable_initializer
+;
+
+type_specifier ::=
+ 	BOOLEAN
+    | BYTE
+    | CHAR
+    | SHORT
+    | INT
+    | FLOAT
+    | LONG
+    | DOUBLE
+    | class_name
+    | interface_name
+;
+
+parameter ::=
+    type identifier LBRACK RBRACK
+;
+
+statement ::=
+    variable_declaration
+    | expression SEMICOLON
+    | statement_block
+    | if_statement
+    | do_statement
+    | while_statement
+    | for_statement
+    | try_statement
+    | switch_statement
+    | SYNCHRONIZED LPAREN expression RPAREN statement
+    | RETURN expression SEMICOLON
+    | THROW expression SEMICOLON
+    | identifier COLON statement
+    | BREAK identifier SEMICOLON
+    | CONTINUE identifier SEMICOLON
+    | SEMICOLON
+;

@@ -2,7 +2,7 @@
  * Lexical Specification
  *
  */
-package compiler.generated;
+package compiler.analysis.generated;
 
 import java_cup.runtime.*;
 
@@ -206,16 +206,17 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
  ">>>"							 {return symbol(sym.URSHIFT);}
  "<<"							 {return symbol(sym.LSHIFT);}
  ">>"							 {return symbol(sym.RSHIFT);}
+ "~"                             {return symbol(sym.NEG_BINARY);}
 
 
 
  /* check how to consider those later
+  */
   "x"							 { return symbol(sym.X);}
   "d"							 { return symbol(sym.D);}
   "e"							 { return symbol(sym.E);}
   "f"							 { return symbol(sym.F);}
   "l"							 { return symbol(sym.L);}
-  */
 
 
  }
