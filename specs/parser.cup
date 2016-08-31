@@ -81,7 +81,9 @@ non terminal casting_expression, creating_expression, literal_expression, arglis
 non terminal string, character, decimal_digits, exponent_part, float_type_suffix, variable_declarator;
 non terminal variable_initializer, package_opt, extends_opt, implements_opt, interface_args, modifier_opt;
 non terminal arglist_opt, decimal_digits_opt, exponent_part_opt, float_type_suffix_opt, variable_declaration_opt;
-non terminal expression_opt, doc_comment_opt, extends_interface_opt, field_declaration_opt;
+non terminal expression_opt, doc_comment_opt, extends_interface_opt, field_declaration_opt, parameter_list_opt;
+non terminal identifier_opt, statement_opt, switch_statement_body, catch_opt, finally_opt;
+non terminal variable_declarator_body, variable_initializer_body;
 
 /* Precedences */
 
@@ -120,7 +122,8 @@ import_statement ::=
 ;
 
 type_declaration ::=
-    doc_comment class_declaration | interface_declaration SEMICOLON
+    doc_comment_opt class_declaration SEMICOLON
+    | doc_comment_opt interface_declaration SEMICOLON
 ;
 
 doc_comment  ::=  "/** text "*/
@@ -134,8 +137,8 @@ implements_opt ::=
     | IMPLEMENTS interface_name interface_args
 ;
 
-implements_args ::=
-    | COMMA interface_name implements_args
+interface_args ::=
+    | COMMA interface_name interface_args
 ;
 
 class_declaration ::=
@@ -188,18 +191,22 @@ field_declaration ::=
 ;
 
 method_declaration ::=
-    modifier type identifier
-    LPAREN parameter_list RPAREN LBRACK RBRACK
-    statement_block | SEMICOLON
+    modifier_opt type identifier LPAREN parameter_list_opt RPAREN LBRACK RBRACK statement_block
+    | modifier_opt type identifier LPAREN parameter_list_opt RPAREN LBRACK RBRACK SEMICOLON
+    | modifier_opt type identifier LPAREN parameter_list_opt RPAREN statement_block
+    | modifier_opt type identifier LPAREN parameter_list_opt RPAREN SEMICOLON
 ;
 
 constructor_declaration ::=
     modifier_opt identifier LPAREN parameter_list RPAREN statement_block
 ;
 
+variable_declarator_body ::=
+    | COMMA variable_declarator variable_declarator_body
+;
+
 variable_declaration ::=
-    modifier type variable_declarator
-    COMMA variable_declarator SEMICOLON
+    modifier_opt type variable_declarator variable_declarator_body SEMICOLON
 ;
 
 static_initializer ::=
@@ -211,15 +218,29 @@ type ::=
 ;
 
 parameter_list ::=
-    parameter COMMA parameter
+    parameter
+    | parameter COMMA parameter_list
 ;
 
 statement_block ::=
-    LBRACE statement RBRACE
+    LBRACE statement_opt RBRACE
 ;
 
 variable_declarator ::=
     identifier LBRACK RBRACK ASSIGNMENT variable_initializer
+    | identifier LBRACK RBRACK
+    | identifier ASSIGNMENT variable_initializer
+    | identifier
+;
+
+variable_declarator_body ::=
+    | COMMA variable_initializer variable_initializer_body
+;
+variable_initializer ::=
+    expression
+    | LBRACE variable_initializer variable_initializer_body  RBRACE
+    | LBRACE variable_initializer variable_initializer_body  COMMA RBRACE
+    | LBRACE RBRACE
 ;
 
 type_specifier ::=
@@ -237,6 +258,7 @@ type_specifier ::=
 
 parameter ::=
     type identifier LBRACK RBRACK
+    | type identifier
 ;
 
 statement ::=
@@ -250,11 +272,11 @@ statement ::=
     | try_statement
     | switch_statement
     | SYNCHRONIZED LPAREN expression RPAREN statement
-    | RETURN expression SEMICOLON
+    | RETURN expression_opt SEMICOLON
     | THROW expression SEMICOLON
     | identifier COLON statement
-    | BREAK identifier SEMICOLON
-    | CONTINUE identifier SEMICOLON
+    | BREAK identifier_opt SEMICOLON
+    | CONTINUE identifier_opt SEMICOLON
     | SEMICOLON
 ;
 
@@ -277,18 +299,27 @@ for_statement ::=
     | FOR LPAREN SEMICOLON expression_opt SEMICOLON expression_opt SEMICOLON RPAREN statement
 ;
 
-try_statement ::=
-    TRY statement
+catch_opt ::=
     CATCH LPAREN parameter RPAREN statement
+;
+
+finally_opt ::=
     FINALLY statement
 ;
 
+try_statement ::=
+    TRY statement catch_opt finally_opt
+
+;
+
+switch_statement_body ::=
+  | CASE expression COLON switch_statement_body
+  | DEFAULT COLON switch_statement_body
+  | statement switch_statement_body
+;
+
 switch_statement ::=
-    SWITCH LPAREN expression RPAREN LBRACE
-    CASE expression COLON
-    | DEFAULT COLON
-    | statement
-    RBRACE
+    SWITCH LPAREN expression RPAREN LBRACE switch_statement_body RBRACE
 ;
 
 expression ::=
@@ -314,61 +345,51 @@ expression ::=
 ;
 
 numeric_expression ::=
-    MINUS
-    | AUTOINCRM
-    | AUTODECRM
-    expression
-    | expression
-    AUTOINCRM
-    | AUTODECRM
-    | expression
-    PLUS
-    | PLUSASSIGN
-    | MINUS
-    | MINUSASSIGN
-    | MULT
-    | MULTASSIGN
-    | DIV
-    | DIVASSIGN
-    | MOD
-    | MODASSIGN
-    expression
+    MINUS expression
+    | AUTOINCRM expression
+    | AUTODECRM expression
+    | expression AUTOINCRM
+    | expression AUTODECRM
+    | expression PLUS expression
+    | expression MINUS expression
+    | expression PLUSASSIGN expression
+    | expression MINUSASSIGN expression
+    | expression MULT expression
+    | expression MULTASSIGN expression
+    | expression DIV expression
+    | expression DIVASSIGN expression
+    | expression MOD expression
+    | expression MODASSIGN expression
 ;
 
 testing_expression ::=
-    expression
-    GT
-    | LT
-    | GTEQ
-    | LTEQ
-    | EQEQ
-    | NOTEQ
-    expression
+    expression GT expression
+    | expression LT expression
+    | expression LTEQ expression
+    | expression GTEQ expression
+    | expression EQEQ expression
+    | expression NOTEQ expression
 ;
 
 logical_expression ::=
     NOT expression
-    | expression
-    AND
-    | ANDASSIGN
-    | OR
-    | ORASSIGN
-    | XOR
-    | XORASSIGN
-    | ANDAND
-    | MOD
-    | MODASSIGN
-    expression
+    | expression  AND expression
+    | expression ANDASSIGN expression
+    | expression OR expression
+    | expression ORASSIGN expression
+    | expression XOR expression
+    | expression XORASSIGN expression
+    | expression ANDAND expression
+    | expression MOD expression
+    | expression MODASSIGN expression
     | expression QUESTION expression COLON expression
     | TRUE
     | FALSE
 ;
 
 string_expression ::=
-    expression
-    PLUS
-    | PLUSASSIGN
-    expression
+    expression PLUS expression
+    | expression PLUSASSIGN expression
 ;
 
 bit_expression ::=
@@ -394,8 +415,8 @@ creating_expression ::=
 literal_expression ::=
     integer_literal
     | float_literal
-    |string
-    |character
+    | string
+    | character
 ;
 
 arglist ::=
@@ -404,6 +425,7 @@ arglist ::=
 
 type ::=
     type_specifier LBRACK RBRACK
+    | type_specifier
 ;
 
 type_specifier ::=
@@ -497,4 +519,20 @@ expression_opt ::=
 ;
  field_declaration_opt ::=
     | field_declaration
+;
+
+parameter_list_opt ::=
+    | parameter_list
+;
+
+identifier_opt ::=
+    | identifier
+;
+
+statement_opt ::=
+    | statement
+;
+
+doc_comment_opt ::=
+    | doc_comment
 ;
