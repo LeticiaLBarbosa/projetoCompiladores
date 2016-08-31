@@ -3,7 +3,7 @@
  *
  */
 package compiler.generated;
-
+import java_cup.*;
 import java_cup.runtime.*;
 
 %%
@@ -49,6 +49,19 @@ import java_cup.runtime.*;
   private void reportError(int line, String msg) {
       throw new RuntimeException("Lexical error at line #" + line + ": " + msg);
   }
+
+  private long parseLong(int start, int end, int radix) {
+  long result = 0;
+  long digit;
+
+  for (int i = start; i < end; i++) {
+    digit  = Character.digit(yycharat(i),radix);
+    result*= radix;
+    result+= digit;
+  }
+
+  return result;
+}
 %}
 
 /* macros
@@ -68,10 +81,25 @@ LineTerminator = \r|\n|\r\n
 WhiteSpace = {LineTerminator} | [ \t\f]
 
 /* numeric */
-IntegerLiteral = 0 | [0-9]*
+IntegerLiteral = 0 | [0-9][0-9]*
+DecIntegerLiteral = 0 | [1-9][0-9]*
+DecLongLiteral    = {DecIntegerLiteral} [lL]
 
+HexIntegerLiteral = 0 [xX] 0* {HexDigit} {1,8}
+HexLongLiteral    = 0 [xX] 0* {HexDigit} {1,16} [lL]
+HexDigit          = [0-9a-fA-F]
+
+OctIntegerLiteral = 0+ [1-3]? {OctDigit} {1,15}
+OctLongLiteral    = 0+ 1? {OctDigit} {1,21} [lL]
+OctDigit          = [0-7]
 /* floats */
-FloatLiteral = {IntegerLiteral}"."{IntegerLiteral}
+FloatLiteral  = ({Float1}|{Float2}|{Float3}) {Exponent}? [fF]
+DoubleLiteral = ({Float1}|{Float2}|{Float3}) {Exponent}?
+
+Float1    = [0-9]+ \. [0-9]*
+Float2    = \. [0-9]+
+Float3    = [0-9]+
+Exponent = [eE] [+-]? [0-9]+
 
 Marker = \" | \'
 SingleMarker = \'
@@ -84,14 +112,19 @@ Alphanumerics_ = [ a-zA-Z0-9_]
 StringLiteral = {Marker}   {StringContent}   {Marker}
 StringContent =  {Alphanumerics_}*StringContent | {Other_Symbols}*StringContent | {Separators}*StringContent
 CharLiteral = {SingleMarker} {CharContent} {SingleMarker}
-CharContent = Alphanumerics| Other_Symbols |
+CharContent = Alphanumerics| Other_Symbols
 Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
 StringCharacter = [^\r\n\"\\]
 SingleCharacter = [^\r\n\'\\]
+
 %state STRING, CHARLITERAL
 
 %%
+
 <YYINITIAL> {
+
+  "d"							 { return symbol(sym.D);}
+  "f"							 { return symbol(sym.F);}
 
   /* keywords */
   "abstract"                     { return symbol(sym.ABSTRACT); }
@@ -149,8 +182,18 @@ SingleCharacter = [^\r\n\'\\]
   {FloatLiteral} 				 { return symbol(sym.FLOATING_POINT_LITERAL, new String(yytext()));}
 
 /* Integer literals */
-  {IntegerLiteral}               { return symbol(sym.INTEGER_LITERAL, new String(yytext()));}
+  {DecIntegerLiteral}            { return symbol(sym.INTEGER_LITERAL, new Integer(yytext())); }
+  {DecLongLiteral}               { return symbol(sym.INTEGER_LITERAL, new Long(yytext().substring(0,yylength()-1))); }
 
+  {HexIntegerLiteral}            { return symbol(sym.INTEGER_LITERAL, new Integer((int) parseLong(2, yylength(), 16))); }
+  {HexLongLiteral}               { return symbol(sym.INTEGER_LITERAL, new Long(parseLong(2, yylength()-1, 16))); }
+
+  {OctIntegerLiteral}            { return symbol(sym.INTEGER_LITERAL, new Integer((int) parseLong(0, yylength(), 8))); }
+  {OctLongLiteral}               { return symbol(sym.INTEGER_LITERAL, new Long(parseLong(0, yylength()-1, 8))); }
+
+  {FloatLiteral}                 { return symbol(sym.FLOATING_POINT_LITERAL, new Float(yytext().substring(0,yylength()-1))); }
+  {DoubleLiteral}                { return symbol(sym.FLOATING_POINT_LITERAL, new Double(yytext())); }
+  {DoubleLiteral}[dD]            { return symbol(sym.FLOATING_POINT_LITERAL, new Double(yytext().substring(0,yylength()-1))); }
 
 /* Comments*/
   {Comment}                      { /* just ignore it */ }
@@ -165,12 +208,15 @@ SingleCharacter = [^\r\n\'\\]
   ";"                            { return symbol(sym.SEMICOLON); }
   ":"                            { return symbol(sym.COLON); }
   ","                            { return symbol(sym.COMMA); }
-  "."   		  				 { return symbol(sym.DOT); }
+  "."   		  		          		 { return symbol(sym.DOT); }
   "?"                            { return symbol(sym.QUESTION); }
 
-  {StringLiteral}                { return symbol(sym.STRING_LITERAL,new String(yytext())); }
-  {CharLiteral}                  { return symbol(sym.CHAR_LITERAL,new String(yytext())); }
- /* White spaces */
+  /* string literal */
+    \"                             { yybegin(STRING); string.setLength(0); }
+
+    /* character literal */
+    \'                             { yybegin(CHARLITERAL); }
+  /* White spaces */
   {WhiteSpace}					 { /* just ignore it*/}
 
 
@@ -224,9 +270,7 @@ SingleCharacter = [^\r\n\'\\]
 
  /* check how to consider those later
   "x"							 { return symbol(sym.X);}
-  "d"							 { return symbol(sym.D);}
   "e"							 { return symbol(sym.E);}
-  "f"							 { return symbol(sym.F);}
   "l"							 { return symbol(sym.L);}
 
   {D}+{IS}?       { return symbol(sym.INTEGER, new String(yytext())); }
@@ -258,22 +302,27 @@ SingleCharacter = [^\r\n\'\\]
   {LineTerminator}               { throw new RuntimeException("Unterminated string at end of line"); }
 }
 
- <CHARLITERAL> {
-   {SingleCharacter}\'            { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character(yytext().charAt(0))); }
+<CHARLITERAL> {
+  {SingleCharacter}\'            { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character(yytext().charAt(0))); }
 
-   /* escape sequences */
-   "\\b"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\b'));}
-   "\\t"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\t'));}
-   "\\n"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\n'));}
-   "\\f"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\f'));}
-   "\\r"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\r'));}
-   "\\\""\'                       { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\"'));}
-   "\\'"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\''));}
-   "\\\\"\'                       { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\\')); }
-   \\[0-3]?{OctDigit}?{OctDigit}\' { yybegin(YYINITIAL);
- 			                              int val = Integer.parseInt(yytext().substring(1,yylength()-1),8);
- 			                            return symbol(sym.CHARACTER_LITERAL, new Character((char)val)); }
-   /* error cases */
-   \\.                            { throw new RuntimeException("Illegal escape sequence \""+yytext()+"\""); }
-   {LineTerminator}               { throw new RuntimeException("Unterminated string at end of line"); }
-  }
+  /* escape sequences */
+  "\\b"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\b'));}
+  "\\t"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\t'));}
+  "\\n"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\n'));}
+  "\\f"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\f'));}
+  "\\r"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\r'));}
+  "\\\""\'                       { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\"'));}
+  "\\'"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\''));}
+  "\\\\"\'                       { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\\')); }
+  \\[0-3]?{OctDigit}?{OctDigit}\' { yybegin(YYINITIAL);
+			                              int val = Integer.parseInt(yytext().substring(1,yylength()-1),8);
+			                            return symbol(sym.CHARACTER_LITERAL, new Character((char)val)); }
+
+  /* error cases */
+  \\.                            { throw new RuntimeException("Illegal escape sequence \""+yytext()+"\""); }
+  {LineTerminator}               { throw new RuntimeException("Unterminated character literal at end of line"); }
+}
+
+
+%%
+  [^] { throw new Error("Illegal character <"+yytext()+">"); }

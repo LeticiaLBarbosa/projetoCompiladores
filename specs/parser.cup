@@ -66,7 +66,7 @@ terminal INTERFACE;
 terminal java.lang.Number INTEGER_LITERAL;
 terminal java.lang.Number FLOATING_POINT_LITERAL;
 terminal java.lang.Boolean BOOLEAN_LITERAL;
-terminal java.lang.Character CHARLITERAL;
+terminal java.lang.String CHARACTER_LITERAL;
 terminal java.lang.String STRING_LITERAL;
 terminal java.lang.String IDENTIFIER;
 
@@ -80,7 +80,8 @@ non terminal numeric_expression, testing_expression, logical_expression, string_
 non terminal casting_expression, creating_expression, literal_expression, arglist, integer_literal, float_literal;
 non terminal string, character, decimal_digits, exponent_part, float_type_suffix, variable_declarator;
 non terminal variable_initializer, package_opt, extends_opt, implements_opt, interface_args, modifier_opt;
-non terminal arglist_opt, decimal_digits_opt
+non terminal arglist_opt, decimal_digits_opt, exponent_part_opt, float_type_suffix_opt, variable_declaration_opt;
+non terminal expression_opt, doc_comment_opt;
 
 /* Precedences */
 
@@ -121,7 +122,7 @@ type_declaration ::=
     doc_comment class_declaration | interface_declaration SEMICOLON
 ;
 
-doc_comment  ::=  "/**" text "*/"
+doc_comment  ::=  "/** text "*/
 ;
 
 extends_opt ::=
@@ -160,7 +161,7 @@ interface_declaration ::=
 ;
 
 modifier_opt ::= | modifier
-
+;
 modifier ::=
     PUBLIC
     | PRIVATE
@@ -267,10 +268,9 @@ while_statement ::=
 ;
 
 for_statement ::=
-    FOR LPAREN variable_declaration | expression SEMICOLON | SEMICOLON
-    expression SEMICOLON
-    expression SEMICOLON
-    RPAREN statement
+    FOR LPAREN variable_declaration expression_opt SEMICOLON expression_opt SEMICOLON RPAREN statement
+    | FOR LPAREN expression_opt SEMICOLON expression_opt SEMICOLON expression_opt SEMICOLON RPAREN statement
+    | FOR LPAREN SEMICOLON expression_opt SEMICOLON expression_opt SEMICOLON RPAREN statement
 ;
 
 try_statement ::=
@@ -448,9 +448,9 @@ integer_literal ::=
 ;
 
 float_literal ::=
-    decimal_digits DOT decimal_digits exponent_part float_type_suffix
-    | DOT decimal_digits exponent_part float_type_suffix
-    | decimal_digits exponent_part float_type_suffix
+    decimal_digits DOT decimal_digits_opt exponent_part_opt float_type_suffix_opt
+    | DOT decimal_digits exponent_part_opt float_type_suffix_opt
+    | decimal_digits exponent_part_opt float_type_suffix_opt
 ;
 
 decimal_digits ::=
@@ -469,7 +469,7 @@ float_type_suffix ::=
 ;
 
 character ::=
-    CHARLITERAL
+    CHARACTER_LITERAL
 ;
 
 string ::=
@@ -478,4 +478,16 @@ string ::=
 
 identifier ::=
     IDENTIFIER
+;
+
+float_type_suffix_opt ::= | float_type_suffix
+;
+
+exponent_part_opt ::= | exponent_part
+;
+variable_declaration_opt ::=
+    | variable_declaration
+;
+expression_opt ::=
+    | expression
 ;
