@@ -18,6 +18,7 @@ import java_cup.runtime.*;
 
 %{
 
+  StringBuffer string = new StringBuffer();
   public static String curLine;
 
   /**
