@@ -79,23 +79,33 @@ non terminal expression, if_statement, do_statement, while_statement, for_statem
 non terminal numeric_expression, testing_expression, logical_expression, string_expression, bit_expression;
 non terminal casting_expression, creating_expression, literal_expression, arglist, integer_literal, float_literal;
 non terminal string, character, decimal_digits, exponent_part, float_type_suffix, variable_declarator;
-non terminal variable_initializer;
+non terminal variable_initializer, package_opt, extends_opt, implements_opt, interface_args, modifier_opt;
+non terminal arglist_opt, decimal_digits_opt
 
 /* Precedences */
 
 precedence nonassoc DOT, LPAREN, LBRACK;
-
+precedence left DIV, MULT;
 precedence left PLUS, MINUS;
-precedence left DIV;
+
 
 /* Rules */
 
 start with compilation_unit;
 
+arglist_opt ::= | arglist
+;
+decimal_digits_opt ::= | decimal_digits
+;
+package_opt ::=
+    | package_statement
+;
+
 compilation_unit ::=
-    package_statement
-    import_statement
-    type_declaration
+    package_opt import_statement type_declaration
+    | package_opt import_statement
+    | package_opt type_declaration
+    | package_opt
 ;
 
 package_statement ::=
@@ -111,14 +121,25 @@ type_declaration ::=
     doc_comment class_declaration | interface_declaration SEMICOLON
 ;
 
-doc_comment ::=
-    // TODO
+doc_comment  ::=  "/**" text "*/"
+;
+
+extends_opt ::=
+    | EXTENDS class_name
+;
+
+implements_opt ::=
+    | IMPLEMENTS interface_name interface_args
+;
+
+implements_compl ::=
+    | COMMA interface_name
 ;
 
 class_declaration ::=
-    modifier CLASS identifier
-    EXTENDS class_name
-    IMPLEMENTS interface_name COMMA interface_name
+    modifier_opt CLASS identifier
+    extends_opt
+    implements_opt
     LBRACE field_declaration RBRACE
 ;
 
@@ -138,6 +159,8 @@ interface_declaration ::=
     LBRACE field_declaration RBRACE
 ;
 
+modifier_opt ::= | modifier
+
 modifier ::=
     PUBLIC
     | PRIVATE
@@ -152,9 +175,9 @@ modifier ::=
 ;
 
 field_declaration ::=
-    doc_comment method_declaration
-    | constructor_declaration
-    | variable_declaration
+    doc_comment_opt method_declaration
+    | doc_comment_opt constructor_declaration
+    | doc_comment_opt variable_declaration
     | static_initializer
     | SEMICOLON
 ;
@@ -166,8 +189,7 @@ method_declaration ::=
 ;
 
 constructor_declaration ::=
-    modifier identifier LPAREN parameter_list RPAREN
-    statement_block
+    modifier_opt identifier LPAREN parameter_list RPAREN statement_block
 ;
 
 variable_declaration ::=
@@ -257,37 +279,37 @@ try_statement ::=
     FINALLY statement
 ;
 
-switch_statement ::= 
+switch_statement ::=
     SWITCH LPAREN expression RPAREN LBRACE
     CASE expression COLON
-    | DEFAULT COLON 
-    | statement 
+    | DEFAULT COLON
+    | statement
     RBRACE
 ;
 
-expression ::= 
+expression ::=
     numeric_expression
-    | testing_expression 
-    | logical_expression 
-    | string_expression 
-    | bit_expression 
-    | casting_expression 
-    | creating_expression 
-    | literal_expression 
-    | NULL 
-    | SUPER 
-    | THIS 
-    |identifier 
-    | LPAREN expression RPAREN 
-    | expression 
-    LPAREN arglist RPAREN 
-    | LBRACK expression LBRACK 
-    | DOT expression 
-    | COMMA expression 
-    | INSTANCEOF class_name | interface_name  
+    | testing_expression
+    | logical_expression
+    | string_expression
+    | bit_expression
+    | casting_expression
+    | creating_expression
+    | literal_expression
+    | NULL
+    | SUPER
+    | THIS
+    | identifier
+    | LPAREN expression RPAREN
+    | expression LPAREN arglist_opt RPAREN
+    | expression LBRACK expression RBRACK
+    | expression DOT expression
+    | expression COMMA expression
+    | expression INSTANCEOF class_name
+    | expression INSTANCEOF interface_name
 ;
 
-numeric_expression ::= 
+numeric_expression ::=
     MINUS
     | AUTOINCRM
     | AUTODECRM
@@ -347,12 +369,10 @@ string_expression ::=
 
 bit_expression ::=
     NEG_BINARY expression
-    | expression
-    RSHIFTASSIGN
-    | LSHIFT
-    | RSHIFT
-    | URSHIFT
-    expression
+    | expression RSHIFTASSIGN expression
+    | expression LSHIFT expression
+    | expression RSHIFT expression
+    | expression URSHIFT expression
 ;
 
 casting_expression ::=
@@ -360,9 +380,11 @@ casting_expression ::=
 ;
 
 creating_expression ::=
-    NEW class_name LPAREN arglist RPAREN
-    | type_specifier LBRACK expression RBRACK LBRACK RBRACK
-    | LPAREN expression RPAREN
+    NEW class_name LPAREN arglist_opt RPAREN
+    | NEW type_specifier LBRACK expression RBRACK LBRACK RBRACK
+    | NEW type_specifier LBRACK expression RBRACK
+    | NEW type_specifier
+    | NEW LPAREN expression RPAREN
 ;
 
 literal_expression ::=
@@ -432,11 +454,13 @@ float_literal ::=
 ;
 
 decimal_digits ::=
-    D // definido na macros mas ainda não sei se ta correto.
+    INTEGER_LITERAL
 ;
 
 exponent_part ::=
-    E PLUS | MINUS decimal_digits
+    E decimal_digits
+    | E PLUS decimal_digits
+    | E MINUS decimal_digits
 ;
 
 float_type_suffix ::=

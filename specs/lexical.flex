@@ -29,7 +29,7 @@ import java_cup.runtime.*;
       curLine = "line :" + yyline;
       return new Symbol(type, yyline, yycolumn);
   }
-  
+
   /**
    * Factory method for creating Symbols for a given type and its value.
    * @param type The type of this symbol
@@ -40,7 +40,7 @@ import java_cup.runtime.*;
       curLine = "line :" + yyline;
       return new Symbol(type, yyline, yycolumn, value);
   }
-  
+
   /**
    * Reports an error occured in a given line.
    * @param line The bad line
@@ -68,12 +68,13 @@ LineTerminator = \r|\n|\r\n
 WhiteSpace = {LineTerminator} | [ \t\f]
 
 /* numeric */
-IntegerLiteral = 0 | [1-9][0-9]*
+IntegerLiteral = 0 | [0-9]*
 
 /* floats */
 FloatLiteral = {IntegerLiteral}"."{IntegerLiteral}
 
 Marker = \" | \'
+SingleMarker = \'
 Other_Symbols = \*|\+|\[|\]|\!|\£|\$|\%|\&|\=|\?|\^|\-|\°|\#|\@|\:|\(|\)
 Separators = \r|\n|\r\n\t\f
 Letter = [a-zA-Z]
@@ -82,8 +83,12 @@ Alphanumerics_ = [ a-zA-Z0-9_]
 
 StringLiteral = {Marker}   {StringContent}   {Marker}
 StringContent =  {Alphanumerics_}*StringContent | {Other_Symbols}*StringContent | {Separators}*StringContent
-
+CharLiteral = {SingleMarker} {CharContent} {SingleMarker}
+CharContent = Alphanumerics| Other_Symbols |
 Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
+StringCharacter = [^\r\n\"\\]
+SingleCharacter = [^\r\n\'\\]
+%state STRING, CHARLITERAL
 
 %%
 <YYINITIAL> {
@@ -146,8 +151,6 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
 /* Integer literals */
   {IntegerLiteral}               { return symbol(sym.INTEGER_LITERAL, new String(yytext()));}
 
-/* character literal */
-  '\'                             { return symbol(sym.CHARLITERAL); }
 
 /* Comments*/
   {Comment}                      { /* just ignore it */ }
@@ -165,9 +168,8 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
   "."   		  				 { return symbol(sym.DOT); }
   "?"                            { return symbol(sym.QUESTION); }
 
- /* TODO string literal */
   {StringLiteral}                { return symbol(sym.STRING_LITERAL,new String(yytext())); }
-
+  {CharLiteral}                  { return symbol(sym.CHAR_LITERAL,new String(yytext())); }
  /* White spaces */
   {WhiteSpace}					 { /* just ignore it*/}
 
@@ -229,9 +231,49 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
 
   {D}+{IS}?       { return symbol(sym.INTEGER, new String(yytext())); }
   */
+  /* Input not matched */
+  [^] { reportError(yyline+1, "Illegal character \"" + yytext() + "\""); }
 
  }
 
-/* Input not matched */
-[^] { reportError(yyline+1, "Illegal character \"" + yytext() + "\""); }
+ <STRING> {
+  \"                             { yybegin(YYINITIAL); return symbol(sym.STRING_LITERAL, string.toString()); }
 
+  {StringCharacter}+             { string.append( yytext() ); }
+
+  /* escape sequences */
+  "\\b"                          { string.append( '\b' ); }
+  "\\t"                          { string.append( '\t' ); }
+  "\\n"                          { string.append( '\n' ); }
+  "\\f"                          { string.append( '\f' ); }
+  "\\r"                          { string.append( '\r' ); }
+  "\\\""                         { string.append( '\"' ); }
+  "\\'"                          { string.append( '\'' ); }
+  "\\\\"                         { string.append( '\\' ); }
+  \\[0-3]?{OctDigit}?{OctDigit}  { char val = (char) Integer.parseInt(yytext().substring(1),8);
+                        				   string.append( val ); }
+
+  /* error cases */
+  \\.                            { throw new RuntimeException("Illegal escape sequence \""+yytext()+"\""); }
+  {LineTerminator}               { throw new RuntimeException("Unterminated string at end of line"); }
+}
+
+ <CHARLITERAL> {
+   {SingleCharacter}\'            { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character(yytext().charAt(0))); }
+
+   /* escape sequences */
+   "\\b"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\b'));}
+   "\\t"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\t'));}
+   "\\n"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\n'));}
+   "\\f"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\f'));}
+   "\\r"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\r'));}
+   "\\\""\'                       { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\"'));}
+   "\\'"\'                        { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\''));}
+   "\\\\"\'                       { yybegin(YYINITIAL); return symbol(sym.CHARACTER_LITERAL, new Character('\\')); }
+   \\[0-3]?{OctDigit}?{OctDigit}\' { yybegin(YYINITIAL);
+ 			                              int val = Integer.parseInt(yytext().substring(1,yylength()-1),8);
+ 			                            return symbol(sym.CHARACTER_LITERAL, new Character((char)val)); }
+   /* error cases */
+   \\.                            { throw new RuntimeException("Illegal escape sequence \""+yytext()+"\""); }
+   {LineTerminator}               { throw new RuntimeException("Unterminated string at end of line"); }
+  }
