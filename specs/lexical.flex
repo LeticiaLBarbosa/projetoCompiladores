@@ -177,7 +177,7 @@ SingleCharacter = [^\r\n\'\\]
   "while"                        { return symbol(sym.WHILE); }
 
 /* Identifier*/
-  {Identifier} 					 { return symbol(sym.IDENTIFIER,yytext());}
+  {Identifier} 					 { return symbol(sym.IDENTIFIER, new String(yytext()));}
 
 /* Float literals */
   {FloatLiteral} 				 { return symbol(sym.FLOATING_POINT_LITERAL, new String(yytext()));}

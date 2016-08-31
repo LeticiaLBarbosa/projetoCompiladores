@@ -5,6 +5,7 @@ package compiler.generated;
 import java_cup.runtime.*;
 import java.util.ArrayList;
 import java.util.List;
+import util.*;
 
 parser code {:
 
@@ -20,7 +21,7 @@ parser code {:
                     internal_message.append(", column "+(symbol.right+1));
             }
         }
-
+        System.err.println("Info: "+info.toString());
         internal_message.append(" : "+message);
         System.err.println(internal_message);
     }
@@ -68,7 +69,7 @@ terminal java.lang.Number FLOATING_POINT_LITERAL;
 terminal java.lang.Boolean BOOLEAN_LITERAL;
 terminal java.lang.String CHARACTER_LITERAL;
 terminal java.lang.String STRING_LITERAL;
-terminal java.lang.String IDENTIFIER;
+terminal IDENTIFIER;
 
 /* Non terminals*/
 non terminal compilation_unit, package_statement, import_statement, type_declaration, package_name, identifier;
@@ -101,11 +102,11 @@ arglist_opt ::= | arglist
 decimal_digits_opt ::= | decimal_digits
 ;
 package_opt ::=
-    | package_statement
+    | package_statement:p {: Logger.print("120 package_opt" + p); :}
 ;
 
 compilation_unit ::=
-    package_opt import_statement type_declaration
+    package_opt import_statement type_declaration {: Logger.print("120 compilationUnit"); :}
     | package_opt import_statement
     | package_opt type_declaration
     | package_opt
@@ -126,7 +127,7 @@ type_declaration ::=
     | doc_comment_opt interface_declaration SEMICOLON
 ;
 
-doc_comment  ::=  "/** text "*/
+doc_comment  ::=  /** "  text "*/
 ;
 
 extends_opt ::=
@@ -503,7 +504,7 @@ string ::=
 ;
 
 identifier ::=
-    IDENTIFIER
+    IDENTIFIER:i {: Logger.print("475 identifier " + i ); :}
 ;
 
 float_type_suffix_opt ::= | float_type_suffix

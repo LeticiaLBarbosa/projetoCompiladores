@@ -8,13 +8,15 @@ import java.io.FileReader;
 public class Main {
 
     public static void main(String[] args) {
-        String prog = "examples/ExemploTeste.java";
+        String prog = "examples/Test.txt";
 
         try{
             Scanner scanner = new Scanner(new FileReader(prog));
             System.out.println(">> Successful Lexical Analysis");
             Parser p = new Parser(scanner);
+            System.out.println(">> Passou aqui");
             Object result = p.parse().value;
+            System.out.println(">> Passou aqui2");
             Symbol s = p.parse();
             System.out.println(">> Successful Sintatic Analysis");
 
