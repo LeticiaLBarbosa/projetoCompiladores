@@ -81,7 +81,7 @@ non terminal casting_expression, creating_expression, literal_expression, arglis
 non terminal string, character, decimal_digits, exponent_part, float_type_suffix, variable_declarator;
 non terminal variable_initializer, package_opt, extends_opt, implements_opt, interface_args, modifier_opt;
 non terminal arglist_opt, decimal_digits_opt, exponent_part_opt, float_type_suffix_opt, variable_declaration_opt;
-non terminal expression_opt, doc_comment_opt;
+non terminal expression_opt, doc_comment_opt, extends_interface_opt, field_declaration_opt;
 
 /* Precedences */
 
@@ -114,8 +114,9 @@ package_statement ::=
 ;
 
 import_statement ::=
-    IMPORT package_name DOT MULT SEMICOLON
-    | class_name | interface_name SEMICOLON
+    IMPORT package_name DOT MULT SEMICOLON SEMICOLON
+    | IMPORT class_name SEMICOLON
+    | IMPORT interface_name SEMICOLON
 ;
 
 type_declaration ::=
@@ -133,8 +134,8 @@ implements_opt ::=
     | IMPLEMENTS interface_name interface_args
 ;
 
-implements_compl ::=
-    | COMMA interface_name
+implements_args ::=
+    | COMMA interface_name implements_args
 ;
 
 class_declaration ::=
@@ -155,9 +156,12 @@ interface_name ::=
 ;
 
 interface_declaration ::=
-    modifier INTERFACE identifier
-    EXTENDS interface_name COMMA interface_name
-    LBRACE field_declaration RBRACE
+    modifier_opt INTERFACE identifier
+    extends_interface_opt LBRACE field_declaration_opt RBRACE
+;
+
+extends_interface_opt ::=
+    | EXTENDS interface_name interface_args
 ;
 
 modifier_opt ::= | modifier
@@ -256,7 +260,7 @@ statement ::=
 
 if_statement ::=
     IF LPAREN expression RPAREN statement
-    ELSE statement
+    | IF LPAREN expression RPAREN statement ELSE statement
 ;
 
 do_statement ::=
@@ -490,4 +494,7 @@ variable_declaration_opt ::=
 ;
 expression_opt ::=
     | expression
+;
+ field_declaration_opt ::=
+    | field_declaration
 ;
