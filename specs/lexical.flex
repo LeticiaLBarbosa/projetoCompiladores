@@ -2,7 +2,7 @@
  * Lexical Specification
  *
  */
-package compiler.analysis.generated;
+package compiler.generated;
 
 import java_cup.runtime.*;
 
