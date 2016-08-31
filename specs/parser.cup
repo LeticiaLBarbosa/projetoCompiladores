@@ -1,7 +1,7 @@
 /**
  * Syntax Specification
  */
-package compiler.analysis.generated;
+package compiler.generated;
 import java_cup.runtime.*;
 import java.util.ArrayList;
 import java.util.List;
