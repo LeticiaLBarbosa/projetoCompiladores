@@ -10,3 +10,7 @@
 /.idea/workspace.xml 
 /.idea/libraries out/ .idea/ .idea
 .idea
+.gitignore
+.idea/
+dist/
+out/

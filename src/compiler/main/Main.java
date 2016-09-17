@@ -1,34 +1,33 @@
 package compiler.main;
 
-import compiler.generated.*;
+import compiler.generated.Parser;
+import compiler.generated.Scanner;
 import java_cup.runtime.Symbol;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 
 public class Main {
 
     public static void main(String[] args) {
-        String prog = "examples/Test.txt";
-
-        try{
-            Scanner scanner = new Scanner(new FileReader(prog));
-            System.out.println(">> Successful Lexical Analysis");
-            Parser p = new Parser(scanner);
-            System.out.println(">> Passou aqui");
-            Object result = p.parse().value;
-            System.out.println(">> Passou aqui2");
-            Symbol s = p.parse();
-            System.out.println(">> Successful Sintatic Analysis");
-
-            if (s.toString().equals("#0"))
-                System.out.println("> SUCCESSFULL COMPILATION");
-            else
-                System.out.println(s);
-
-        }catch(Exception e){
-            System.err.println("Processo de Compilacao Falhou!");
-            System.err.println(e.getMessage());
+        String filePath = "examples/Test3.txt";
+        Scanner scanner = null;
+        try {
+            scanner = new Scanner(new BufferedReader(new FileReader(filePath)));
+        } catch (FileNotFoundException e1) {
+            System.out.println(e1.getMessage());
         }
+        Parser parser = new Parser(scanner);
+        Symbol s = null;
+        try {
+            s = parser.parse();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        System.out.println("Done!");
+        System.out.println(s);
     }
 
 }
