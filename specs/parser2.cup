@@ -37,13 +37,13 @@ terminal java.lang.String IDENTIFIER;
 terminal NULL_LITERAL;
 
 non terminal compilation_unit;
-non terminal package_declaration, package_declaration_opt, entity_name;
+non terminal package_declaration, package_declaration_opt, package_name, class_name, interface_name;
 non terminal type_declaration, class_declaration, modifier, modifier_loop;
-non terminal extends_declaration_opt, implements_declaration_opt, implements_loop;
+non terminal extends_declaration_opt, implements_declaration_opt, implements_loop, extends_interface_declaration_opt;
 non terminal field_declaration, field_declaration_loop;
 non terminal method_declaration, constructor_declaration, variable_declaration, static_initializer;
 non terminal import_statement, import_aux, import_statement_loop;
-non terminal type, type_specifier, interface_declaration;
+non terminal type, type_specifier, interface_declaration, interface_declaration_loop;
 non terminal statement, statement_block, statement_loop;
 non terminal brack_loop, brack;
 non terminal parameter, parameter_list_opt, parameter_list;
@@ -73,7 +73,7 @@ compilation_unit ::=
 ;
 
 package_declaration ::=
-   PACKAGE entity_name SEMICOLON
+   PACKAGE package_name SEMICOLON
 ;
 
 package_declaration_opt ::=  | package_declaration ;
@@ -89,8 +89,9 @@ import_statement ::=
 ;
 
 import_aux ::=
-	entity_name DOT MULT
-	| entity_name
+	package_name DOT MULT
+	| class_name
+	| interface_name
 ;
 
 
@@ -103,13 +104,19 @@ modifier ::=  PUBLIC | PRIVATE| PROTECTED | STATIC | FINAL
 modifier_loop ::= | modifier modifier_loop
 ;
 
-entity_name ::= IDENTIFIER | entity_name DOT IDENTIFIER;
+// entity_name ::= IDENTIFIER | entity_name DOT IDENTIFIER;
 
-extends_declaration_opt ::= | EXTENDS entity_name;
+package_name ::= IDENTIFIER | package_name DOT IDENTIFIER;
+
+class_name ::= IDENTIFIER | package_name DOT IDENTIFIER;
+
+interface_name ::= IDENTIFIER | package_name DOT IDENTIFIER;
+
+extends_declaration_opt ::= | EXTENDS class_name;
 
 implements_declaration_opt ::= | IMPLEMENTS implements_loop;
 
-implements_loop ::= entity_name | entity_name COMMA implements_loop;
+implements_loop ::= interface_name | interface_name COMMA implements_loop;
 
 class_declaration ::= modifier_loop CLASS IDENTIFIER extends_declaration_opt implements_declaration_opt LBRACE field_declaration_loop RBRACE;
 
@@ -144,7 +151,7 @@ brack_loop ::= | brack brack_loop;
 type ::= type_specifier brack_loop;
 
 type_specifier ::= BOOLEAN | BYTE | CHAR | SHORT | INT | FLOAT | LONG
-    | DOUBLE | VOID | entity_name;
+    | DOUBLE | VOID | IDENTIFIER;
 
 parameter ::= type IDENTIFIER brack_loop;
 
@@ -152,7 +159,11 @@ parameter_list_opt ::= | parameter_list;
 
 parameter_list ::= parameter | parameter COMMA parameter_list;
 
-interface_declaration ::= modifier_loop INTERFACE IDENTIFIER extends_declaration_opt LBRACE field_declaration_loop RBRACE;
+extends_interface_declaration_opt ::= | EXTENDS interface_declaration_loop;
+
+interface_declaration_loop ::= interface_name | interface_name COMMA interface_declaration_loop;
+
+interface_declaration ::= modifier_loop INTERFACE IDENTIFIER extends_interface_declaration_opt LBRACE field_declaration_loop RBRACE;
 
 field_declaration_loop ::=
     | field_declaration field_declaration_loop
@@ -266,7 +277,7 @@ switch_clausulas_loop ::= | switch_clausulas switch_clausulas_loop;
 creating_expression ::= NEW creating_expression_end_option;
 
 creating_expression_end_option ::=
-    entity_name LPAREN arglist_opt RPAREN
+    class_name LPAREN arglist_opt RPAREN
     | type_specifier creating_expression_option brack_loop
     | LPAREN expression RPAREN;
 
@@ -284,7 +295,8 @@ expression_end_option ::=
     | LBRACK expression RBRACK
     | DOT expression
     | COMMA expression
-    | INSTANCEOF entity_name;
+    | INSTANCEOF class_name
+    | INSTANCEOF interface_name;
 
 arglist_opt ::= expression_loop;
 
