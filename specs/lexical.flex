@@ -226,6 +226,8 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
     "<<="							{return symbol(sym.LSHIFTEQ);}
     "?"                             { return symbol(sym.QUESTION); }
 
+    <<EOF>>                         { return symbol(sym.EOF); }
+
 }
 
  <STRING> {
