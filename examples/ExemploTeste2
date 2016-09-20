@@ -57,9 +57,9 @@ public class Test extends Main implements Serializable {
     }
 
 
-    /* Por algum motivo não esta conseguindo usar palavra como String, Object ou qualquer outra classe criada como tipo */
+    /** Por algum motivo não esta conseguindo usar palavra como String, Object ou qualquer outra classe criada como tipo */
     public void strings(){
-        char a = "";
+        char palavra = "bla bla";
         char b = "test";
         char c = "AaDa";
         char d = "Aa";
@@ -76,6 +76,12 @@ public class Test extends Main implements Serializable {
     public void testingWhile(int x, int y){
         while(10 == 10){
             x = y + 1;
+        }
+    }
+
+    public void testfor(){
+        for(int i = 0; i < 10 ; i++){
+            x = 2;
         }
     }
 }

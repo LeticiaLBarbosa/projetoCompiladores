@@ -219,7 +219,7 @@ attribution ::= IDENTIFIER EQ expression;
 
 numeric_option ::= PLUSPLUS | MINUSMINUS;
 
-for_statement ::= FOR LPAREN for_div_1 expression_opt COMMA expression_opt COMMA RPAREN statement;
+for_statement ::= FOR LPAREN for_div_1 expression_opt SEMICOLON expression_opt RPAREN statement_block;
 
 middle_operator ::= PLUS | PLUSEQ | MINUS | MINUSEQ | MULT | MULTEQ | DIV | DIVEQ | MOD | MODEQ;
 
@@ -229,7 +229,7 @@ numeric_expression ::= MINUS expression | numeric_option expression
 					   | expression numeric_option
 					   | expression middle_operator expression;
 
-expression_opt  ::= | expression;
+expression_opt ::= | expression;
 
 testing_option ::= GT | LT | GTEQ | LTEQ | EQEQ | NOTEQ;
 
