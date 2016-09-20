@@ -33,20 +33,17 @@ terminal java.lang.Number FLOATING_POINT_LITERAL;
 terminal java.lang.Boolean BOOLEAN_LITERAL;
 terminal java.lang.Character CHARACTER_LITERAL;
 terminal java.lang.String STRING_LITERAL;
-terminal java.lang.String CHARLITERAL;
 terminal java.lang.String IDENTIFIER;
 terminal NULL_LITERAL;
 
 non terminal compilation_unit;
-non terminal package_declaration, package_declaration_opt, package_name;
-non terminal type_declaration, type_declaration_loop, type_declaration_aux;
-non terminal class_declaration, class_or_interface_name, modifier, modifier_loop;
-non terminal extends_declaration_opt, implements_declaration_opt, implements_or_extends_loop;
-non terminal extends_declaration_interface_opt;
+non terminal type_declaration, class_declaration, modifier, modifier_loop,entity_name;
+non terminal package_declaration, package_declaration_opt, package_name, class_name, interface_name;
+non terminal extends_declaration_opt, implements_declaration_opt, implements_loop, extends_interface_declaration_opt;
 non terminal field_declaration, field_declaration_loop;
 non terminal method_declaration, constructor_declaration, variable_declaration, static_initializer;
 non terminal import_statement, import_aux, import_statement_loop;
-non terminal type, type_specifier, interface_declaration;
+non terminal type, type_specifier, interface_declaration, interface_declaration_loop;
 non terminal statement, statement_block, statement_loop;
 non terminal brack_loop, brack;
 non terminal parameter, parameter_list_opt, parameter_list;
@@ -65,27 +62,26 @@ non terminal numeric_expression, testing_expression, logical_expression, string_
 non terminal bit_expression, casting_expression, creating_expression, literal_expression;
 non terminal numeric_option,  middle_operator;
 non terminal testing_option, logical_option, string_operation, bit_operation;
-non terminal arglist, arglist_opt;
+non terminal arglist_opt;
 non terminal creating_expression_option, creating_expression_end_option;
+non terminal attribution;
 
 start with compilation_unit;
 
-compilation_unit ::=
-   package_declaration_opt import_statement_loop type_declaration_loop EOF
-;
+type_specifier ::=  BOOLEAN | BYTE | CHAR | SHORT | INT | FLOAT | LONG
+    | DOUBLE | VOID | IDENTIFIER;
 
-package_name ::=
-    IDENTIFIER
-    | package_name DOT IDENTIFIER
+compilation_unit ::=
+   package_declaration_opt import_statement_loop type_declaration
 ;
 
 package_declaration ::=
-   PACKAGE package_name SEMICOLON
+   PACKAGE entity_name SEMICOLON
 ;
 
-package_declaration_opt ::=
-    | package_declaration
-;
+package_declaration_opt ::=  | package_declaration ;
+
+//import
 
 import_statement_loop ::=
     | import_statement import_statement_loop
@@ -96,59 +92,74 @@ import_statement ::=
 ;
 
 import_aux ::=
-	package_name DOT MULT
-	| class_or_interface_name
+	entity_name DOT MULT
+	| entity_name
 ;
 
-type_declaration_loop ::=
-    | type_declaration type_declaration_loop
-;
+//type
+type_declaration ::= class_declaration | interface_declaration;
 
-type_declaration_aux ::=
-    class_declaration
-    | interface_declaration
-;
+entity_name ::= IDENTIFIER | entity_name DOT IDENTIFIER;
 
-type_declaration ::=
-    type_declaration_aux SEMICOLON
-;
+//package_name ::= IDENTIFIER | package_name DOT IDENTIFIER;
 
-modifier ::=
-    PUBLIC
-    | PRIVATE
-    | PROTECTED
-    | STATIC
-    | FINAL
-    | NATIVE
-    | SYNCHRONIZED
-    | ABSTRACT
-    | THREADSAFE
-    | TRANSIENT
-;
+//class_name ::= IDENTIFIER | package_name DOT IDENTIFIER;
 
-modifier_loop ::=
-    | modifier modifier_loop
-;
+//interface_name ::= IDENTIFIER | package_name DOT IDENTIFIER;
 
-class_or_interface_name ::=
-    IDENTIFIER
-    | package_name DOT IDENTIFIER
-;
+extends_declaration_opt ::= | EXTENDS entity_name;
 
-extends_declaration_opt ::=
-    | EXTENDS class_or_interface_name
-;
+implements_declaration_opt ::= | IMPLEMENTS implements_loop;
 
-implements_declaration_opt ::=
-    | IMPLEMENTS implements_or_extends_loop
-;
-
-implements_or_extends_loop ::=
-    class_or_interface_name
-    | class_or_interface_name COMMA implements_or_extends_loop
-;
+implements_loop ::= entity_name | entity_name COMMA implements_loop;
 
 class_declaration ::= modifier_loop CLASS IDENTIFIER extends_declaration_opt implements_declaration_opt LBRACE field_declaration_loop RBRACE;
+
+field_declaration ::= method_declaration | constructor_declaration | variable_declaration | static_initializer | SEMICOLON;
+
+method_declaration ::= modifier_loop type IDENTIFIER LPAREN parameter_list_opt RPAREN end_option;
+
+constructor_declaration ::= modifier_loop IDENTIFIER LPAREN parameter_list_opt RPAREN statement_block;
+
+variable_declaration ::= type variable_declarator_loop SEMICOLON | modifier_loop type variable_declarator_loop SEMICOLON;
+
+modifier ::=  PUBLIC | PRIVATE| PROTECTED | STATIC | FINAL
+			| NATIVE | SYNCHRONIZED | ABSTRACT | THREADSAFE | TRANSIENT;
+
+modifier_loop ::= | modifier modifier_loop
+;
+
+variable_declarator_loop ::= variable_declarator | variable_declarator COMMA variable_declarator_loop;
+
+variable_declarator ::= IDENTIFIER brack_loop attr_opt;
+
+attr_opt ::= | EQ variable_initializer;
+
+variable_initializer ::= expression | LBRACE variable_initializer_opt RBRACE | IDENTIFIER;
+
+variable_initializer_opt ::= | variable_initializer_loop comma_opt;
+
+variable_initializer_loop ::= variable_initializer | variable_initializer COMMA variable_initializer_loop;
+
+comma_opt ::= | COMMA;
+
+static_initializer ::= IDENTIFIER;
+
+brack ::= LBRACK RBRACK;
+
+brack_loop ::= | brack brack_loop;
+
+type ::= type_specifier brack_loop;
+
+parameter ::= type IDENTIFIER brack_loop;
+
+parameter_list_opt ::= | parameter_list;
+
+parameter_list ::= parameter | parameter COMMA parameter_list;
+
+extends_interface_declaration_opt ::= | EXTENDS implements_loop;
+
+interface_declaration ::= modifier_loop INTERFACE IDENTIFIER extends_interface_declaration_opt LBRACE field_declaration_loop RBRACE;
 
 field_declaration_loop ::=
     | field_declaration field_declaration_loop
@@ -161,266 +172,117 @@ field_declaration ::=
     | static_initializer
 ;
 
-method_declaration ::= modifier_loop type IDENTIFIER LPAREN parameter_list_opt RPAREN end_option;
-
-constructor_declaration ::= modifier_loop IDENTIFIER LPAREN parameter_list_opt RPAREN statement_block;
-
-variable_declaration ::= modifier_loop type variable_declarator_loop SEMICOLON;
-
-variable_declarator_loop ::=
-    variable_declarator
-    | variable_declarator COMMA variable_declarator_loop;
-
-variable_declarator ::= IDENTIFIER brack_loop attr_opt;
-
-attr_opt ::=
-    | EQ variable_initializer
-;
-
-variable_initializer ::=
-    expression
-    | LBRACE variable_initializer_opt RBRACE
-;
-
-variable_initializer_opt ::=
-    | variable_initializer_loop comma_opt
-;
-
-variable_initializer_loop ::=
-    variable_initializer
-    | variable_initializer COMMA variable_initializer_loop
-;
-
-comma_opt ::=
-    | COMMA
-;
-
-static_initializer ::= STATIC statement_block;
-
-brack ::= LBRACK RBRACK;
-
-brack_loop ::=
-    | brack brack_loop
-;
-
-type ::= type_specifier brack_loop;
-
-type_specifier ::=
-    BOOLEAN
-    | BYTE
-    | CHAR
-    | SHORT
-    | INT
-    | FLOAT
-    | LONG
-    | DOUBLE
-    | class_or_interface_name
-;
-
-parameter ::= type IDENTIFIER brack_loop;
-
-parameter_list_opt ::=
-    | parameter_list
-;
-
-parameter_list ::=
-    parameter
-    | parameter COMMA parameter_list
-;
-
-extends_declaration_interface_opt ::=
-    | EXTENDS implements_or_extends_loop
-;
-
-interface_declaration ::= modifier_loop INTERFACE IDENTIFIER extends_declaration_interface_opt LBRACE field_declaration_loop RBRACE;
-
 statement_block ::=  LBRACE statement_loop RBRACE;
 
-statement ::=
-    variable_declaration
-    | expression SEMICOLON
-    | statement_block
-    | if_statement
-    | do_statement
-    | while_statement
-    | for_statement
-    | switch_statement
-    | SYNCHRONIZED LPAREN expression RPAREN statement
-    | RETURN expression_opt SEMICOLON
-    | THROW expression SEMICOLON
-    | IDENTIFIER COLON statement
-    | BREAK identifier_opt SEMICOLON
-    | CONTINUE identifier_opt SEMICOLON
-    | SEMICOLON
-;
+statement ::= variable_declaration
+              | expression SEMICOLON
+              | statement_block
+              | if_statement
+              | do_statement
+              | while_statement
+              | for_statement
+              | try_statement
+              | switch_statement
+              | SYNCHRONIZED LPAREN expression RPAREN statement
+              | RETURN expression_opt SEMICOLON
+              | THROW expression SEMICOLON
+              | IDENTIFIER COLON statement
+              | BREAK identifier_opt SEMICOLON
+              | CONTINUE identifier_opt SEMICOLON
+              | SEMICOLON;
 
-statement_loop ::=
-    | statement statement_loop
-;
+statement_loop ::= | statement statement_loop;
 
-end_option ::=
-    statement_block
-    | SEMICOLON
-;
+end_option ::= statement_block | SEMICOLON;
 
 if_statement ::= IF LPAREN expression RPAREN statement else_opt;
 
 statement_block ::=  LBRACE statement RBRACE;
 
-else_opt ::=
-    | ELSE statement
-;
+else_opt ::= | ELSE statement;
 
 do_statement ::= DO statement WHILE LPAREN expression RPAREN COMMA;
 
 while_statement ::= WHILE LPAREN expression RPAREN statement;
 
-expression ::=
-    numeric_expression
-    | testing_expression
-    | logical_expression
-    | string_expression
-    | bit_expression
-    | casting_expression
-    | creating_expression
-    | literal_expression
-    | NULL_LITERAL
-    | SUPER
-    | THIS
-    | IDENTIFIER
-    | LPAREN expression LPAREN
-    | expression expression_end_option
-;
+expression ::= numeric_expression
+              | testing_expression
+              | logical_expression
+              | string_expression
+              | bit_expression
+              | casting_expression
+              | creating_expression
+              | literal_expression
+              | NULL_LITERAL
+              | SUPER
+              | THIS
+              | IDENTIFIER
+              | attribution
+              | LPAREN expression LPAREN
+              | expression expression_end_option;
 
-numeric_option ::=
-    PLUSPLUS
-    | MINUSMINUS
-;
+attribution ::= IDENTIFIER EQ expression;
 
-for_statement ::= FOR LPAREN for_div_1 expression_opt SEMICOLON expression_opt SEMICOLON RPAREN statement;
+numeric_option ::= PLUSPLUS | MINUSMINUS;
 
-middle_operator ::=
-    PLUS
-    | PLUSEQ
-    | MINUS
-    | MINUSEQ
-    | MULT
-    | MULTEQ
-    | DIV
-    | DIVEQ
-    | MOD
-    | MODEQ
-;
+for_statement ::= FOR LPAREN for_div_1 expression_opt SEMICOLON expression_opt RPAREN statement_block;
 
-for_div_1 ::=
-    variable_declaration
-    | expression SEMICOLON
-    | SEMICOLON
-;
+middle_operator ::= PLUS | PLUSEQ | MINUS | MINUSEQ | MULT | MULTEQ | DIV | DIVEQ | MOD | MODEQ;
 
-numeric_expression ::=
-    MINUS expression
-    | numeric_option expression
-    | expression numeric_option
-    | expression middle_operator expression
-;
+for_div_1 ::= variable_declaration | expression SEMICOLON | SEMICOLON ;
 
-expression_opt ::=
-    | expression
-;
+numeric_expression ::= MINUS expression | numeric_option expression
+					   | expression numeric_option
+					   | expression middle_operator expression;
 
-testing_option ::=
-    GT
-    | LT
-    | GTEQ
-    | LTEQ
-    | EQEQ
-    | NOTEQ
-;
+expression_opt  ::= | expression;
+
+testing_option ::= GT | LT | GTEQ | LTEQ | EQEQ | NOTEQ;
 
 testing_expression ::= expression testing_option expression;
 
 try_statement ::= TRY statement catch_loop finally_opt;
 
-logical_option ::=
-    AND
-    | ANDEQ
-    | OR
-    | OREQ
-    | XOR
-    | XOREQ
-    | ANDAND
-    | OROREQ
-    | MOD
-    | MODEQ
-;
+logical_option ::=  AND | ANDEQ | OR | OROR | OREQ | XOR | XOREQ | ANDAND
+| OROREQ | MOD | MODEQ;
 
 
-catch_loop ::=
-    | CATCH LPAREN parameter RPAREN statement catch_loop;
+catch_loop ::= | CATCH LPAREN parameter RPAREN statement catch_loop;
 
-logical_expression ::=
-    NOT expression
-    | expression logical_option expression
-    | expression QUESTION expression COLON expression
-    | BOOLEAN_LITERAL
-;
+logical_expression ::= NOT expression
+					   | expression logical_option expression
+					   | expression QUESTION expression COLON expression
+					   | BOOLEAN_LITERAL;
 
-string_operation ::=
-    PLUS
-    | PLUSEQ
-;
+string_operation ::= PLUS | PLUSEQ;
 
-finally_opt ::=
-    | FINALLY statement
-;
+finally_opt ::= | FINALLY statement;
 
 string_expression ::= expression string_operation expression;
 
 switch_statement ::= SWITCH LPAREN expression RPAREN LBRACE switch_clausulas_loop RBRACE;
 
-bit_operation ::=
-    RSHIFTEQ
-    | LSHIFT
-    | RSHIFT
-    | URSHIFT
-;
+bit_operation ::= RSHIFTEQ | LSHIFT | RSHIFT | URSHIFT;
 
 casting_expression ::= LPAREN type RPAREN expression;
 
-bit_expression ::=
-    COMP expression
-    | expression bit_operation expression
-;
+bit_expression ::= COMP expression  | expression bit_operation expression;
 
-switch_clausulas_loop ::=
-    | switch_clausulas switch_clausulas_loop
-;
+switch_clausulas_loop ::= | switch_clausulas switch_clausulas_loop;
 
 creating_expression ::= NEW creating_expression_end_option;
 
 creating_expression_end_option ::=
-    class_or_interface_name LPAREN arglist_opt RPAREN
+    entity_name LPAREN arglist_opt RPAREN
     | type_specifier creating_expression_option brack_loop
-    | LPAREN expression RPAREN
-;
+    | LPAREN expression RPAREN;
 
-creating_expression_option ::=
-    | RBRACK expression LBRACK
-;
+creating_expression_option ::= | RPAREN expression LPAREN;
 
-switch_clausulas ::=
-    CASE expression COLON
-    | DEFAULT COLON
-    | statement
-;
+switch_clausulas ::= CASE expression COLON | DEFAULT COLON | statement;
 
-literal_expression ::=
-    INTEGER_LITERAL
-    | FLOATING_POINT_LITERAL
-    | STRING_LITERAL
-    | CHARLITERAL
-;
+literal_expression ::= INTEGER_LITERAL | FLOATING_POINT_LITERAL | BOOLEAN_LITERAL | CHARACTER_LITERAL
+                       | STRING_LITERAL | NULL_LITERAL;
 
 identifier_opt ::= | IDENTIFIER;
 
@@ -429,14 +291,8 @@ expression_end_option ::=
     | LBRACK expression RBRACK
     | DOT expression
     | COMMA expression
-    | INSTANCEOF class_or_interface_name
-;
+    | INSTANCEOF entity_name;
 
-arglist_opt ::=
-    | arglist
-;
+arglist_opt ::= expression_loop;
 
-arglist ::=
-    expression
-    | expression COMMA arglist
-;
+expression_loop ::= expression | expression COMMA expression_loop;

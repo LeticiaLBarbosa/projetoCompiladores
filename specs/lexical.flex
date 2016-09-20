@@ -38,6 +38,9 @@ import compiler.core.*;
   }
 %}
 
+/* Identifiers */
+Identifier = [:jletter:][:jletterdigit:]*
+
 /* White spaces*/
 LineTerminator = \r|\n|\r\n
 WhiteSpace = {LineTerminator} | [ \t\f]
@@ -70,9 +73,6 @@ Separators = \r|\n|\r\n\t\f
 Alphanumerics_ = [ a-zA-Z0-9_]
 
 temp = [ \*|\+|\[|\]|\!|\£|\$|\%|\&|\=|\?|\^|\-|\°|\#|\@|\:|\(|\)|\"|\r|\n|\r\n\t\f a-zA-Z0-9_]*
-
-/* Identifiers */
-Identifier = [:jletter:][:jletterdigit:]*
 
 /* String and Character literals */
 StringCharacter = [^\r\n\"\\]
@@ -138,6 +138,9 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
     /* Boolean literals*/
     "true"                          { return symbol(sym.BOOLEAN_LITERAL, new Boolean(true)); }
     "false"                         { return symbol(sym.BOOLEAN_LITERAL, new Boolean(false)); }
+
+    /* Identifier*/
+    {Identifier} 					{ return symbol(sym.IDENTIFIER,yytext());}
 
     {DecimalLiteral}                { return symbol(sym.INTEGER_LITERAL, new Integer(yytext())); }
     {LongLiteral}                   { return symbol(sym.INTEGER_LITERAL, new Long(yytext().substring(0,yylength()-1))); }
@@ -218,9 +221,6 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
     ">>="							{return symbol(sym.RSHIFTEQ);}
     "<<="							{return symbol(sym.LSHIFTEQ);}
     "?"                             { return symbol(sym.QUESTION); }
-
-    /* Identifier*/
-    {Identifier} 					{ return symbol(sym.IDENTIFIER,yytext());}
 
 }
 

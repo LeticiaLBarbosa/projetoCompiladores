@@ -114,6 +114,9 @@ public class Test extends Main implements Serializable {
 
     private void testString(){
         String exe;
+        public String a;
+        int a = (int) 3.4;
+        Object ab = new Object;
 
     }
 }
