@@ -71,6 +71,10 @@ start with compilation_unit;
 compilation_unit ::=
    package_declaration_opt import_statement_loop type_declaration
 ;
+entity_name ::= IDENTIFIER | entity_name DOT IDENTIFIER;
+
+type_specifier ::= BOOLEAN | BYTE | CHAR | SHORT | INT | FLOAT | LONG
+    | DOUBLE | VOID | entity_name;
 
 package_declaration ::=
    PACKAGE entity_name SEMICOLON
@@ -102,7 +106,6 @@ modifier ::=  PUBLIC | PRIVATE| PROTECTED | STATIC | FINAL
 modifier_loop ::= | modifier modifier_loop
 ;
 
-entity_name ::= IDENTIFIER | entity_name DOT IDENTIFIER;
 
 extends_declaration_opt ::= | EXTENDS entity_name;
 
@@ -118,9 +121,9 @@ method_declaration ::= modifier_loop type IDENTIFIER LPAREN parameter_list_opt R
 
 constructor_declaration ::= modifier_loop IDENTIFIER LPAREN parameter_list_opt RPAREN statement_block;
 
-variable_declaration ::= modifier_loop type variable_declarator_loop SEMICOLON;
-
 variable_declarator_loop ::= variable_declarator | variable_declarator COMMA variable_declarator_loop;
+
+variable_declaration ::= modifier_loop type variable_declarator_loop SEMICOLON;
 
 variable_declarator ::= IDENTIFIER brack_loop attr_opt;
 
@@ -142,8 +145,6 @@ brack_loop ::= | brack brack_loop;
 
 type ::= type_specifier brack_loop;
 
-type_specifier ::= BOOLEAN | BYTE | CHAR | SHORT | INT | FLOAT | LONG
-    | DOUBLE | VOID | entity_name;
 
 parameter ::= type IDENTIFIER brack_loop;
 
