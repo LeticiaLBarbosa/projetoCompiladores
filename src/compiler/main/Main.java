@@ -11,7 +11,7 @@ import java.io.FileReader;
 public class Main {
 
     public static void main(String[] args) {
-        String filePath = "examples/ExemploTeste2";
+        String filePath = "examples/ExemploTeste.txt";
         Scanner scanner = null;
         try {
             scanner = new Scanner(new BufferedReader(new FileReader(filePath)));
@@ -24,6 +24,7 @@ public class Main {
             s = parser.parse();
         } catch (Exception e) {
             System.out.println(e.getMessage());
+            return;
         }
 
         System.out.println("Done!");
