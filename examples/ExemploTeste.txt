@@ -67,6 +67,14 @@ public class Test extends Main implements Serializable {
         String h = "!:_)(*&&*)oiiis";
     }
 
+    public void expressoesRelacionais(){
+        String a;
+        String b;
+        int c;
+        boolean n = a == b;
+        n = (a + c) > b;
+    }
+
     public void testingWhile(int x, int y){
         while(true){
             x = y + 1;

@@ -76,7 +76,7 @@ public class SemanticImpl{
         tiposCompativeis.put("float", floatCompTypes);
         tiposCompativeis.put("long", longCompTypes);
         tiposCompativeis.put("int", intCompTypes);
-        tiposCompativeis.put("string", stringCompTypes);
+        tiposCompativeis.put("String", stringCompTypes);
     }
 
     private void createNewScope(ScopedEntity scope) {
@@ -179,7 +179,19 @@ public class SemanticImpl{
 
     public boolean isNumericExpression(Expression le, Expression re) throws InvalidOperationException{
         if((le != null && !le.isNumeric()) || (re != null && !re.isNumeric())){
-            throw new InvalidOperationException("Not a numeric expression");
+            if(!isStringExpression(le, re)){
+                throw new InvalidOperationException("Not a numeric or string expression");
+            }
+        }
+        return true;
+    }
+
+    public boolean isStringExpression(Expression le, Expression re) throws InvalidOperationException {
+        System.out.println("le "+le);
+        System.out.println("re "+re);
+        if((le != null && !le.isString()) && (re != null && !re.isString())){
+            System.out.println(le.isString());
+            throw new InvalidOperationException("Not a string expression");
         }
         return true;
     }
@@ -279,7 +291,7 @@ public class SemanticImpl{
     }
 
     private void checkDeclaredAndReturnedType(String functionName,Type declaredType, Expression exp) throws InvalidFunctionException {
-        if(!declaredType.equals(exp.getType())){
+        if(!declaredType.equals(exp.getType()) && !declaredType.equals(new Type("void"))){
             throw new InvalidFunctionException("The function "+functionName+" didn't return the expected type: "+declaredType+". It returns "+exp.getType() + " instead");
         }
     }

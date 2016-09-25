@@ -411,7 +411,7 @@ numeric_expression ::=
                                                                         SemanticImpl.getInstance().isNumericExpression((Expression) e, null); RESULT=e;:}
 	| expression:e numeric_option:no                                    {:Logger.print("Line 300, numeric_option:" + e);
 	                                                                    SemanticImpl.getInstance().isNumericExpression((Expression) e, null); RESULT=e;:}
-	| expression:le middle_operator:md expression:re                    {:Logger.print("Line 302 le " + le);
+	| expression:le middle_operator:md expression:re                    {:Logger.print("Line 302 "+ le + ((Node) md).getValue()+ " "+re);
 					   								        		    SemanticImpl.getInstance().isNumericExpression((Expression) le,(Expression) re);
 					   												    RESULT = SemanticImpl.getInstance().getExpression((Expression) le,
 					   												    Operation.valueOf(((Node) md).getIdentifier()), (Expression) re);:}
