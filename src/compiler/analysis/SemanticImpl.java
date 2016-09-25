@@ -18,7 +18,7 @@ public class SemanticImpl{
     private Stack<ScopedEntity> scopeStack = new Stack<ScopedEntity>();
     Program jProgram = new Program();
     private static Map<String, List<String>> tiposCompativeis = new HashMap<String, List<String>>();
-
+    private int forCounter = 0;
     private static SemanticImpl singleton;
     private Program javaProgram;
     public static SemanticImpl getInstance(){
@@ -77,6 +77,7 @@ public class SemanticImpl{
 
     public void exitCurrentScope() throws InvalidFunctionException {
         ScopedEntity scoped = scopeStack.pop();
+        System.out.println("saiu do escopo");
     }
 
     public void exitCurrentScope(Expression exp) throws InvalidFunctionException {
@@ -221,14 +222,15 @@ public class SemanticImpl{
         for(String v : variables.keySet()){
             System.out.println(v);
         }
-
+        System.out.println("Tentou add o i");
         if(scopeStack.isEmpty()){
             validateVariableGlobal(variable);
-
             variables.put(variable.getIdentifier(),variable);
         }else{
             validateVariable(variable);
+
             getCurrentScope().addVariable(variable);
+            System.out.println("Adicionou ao escopo");
         }
 
         if (variable.getValue() != null){
@@ -238,6 +240,9 @@ public class SemanticImpl{
 
     public void addVariablesFromTempList(Type type) throws Exception{
         for (Variable variable : tempVariables) {
+            System.out.println("Add variavel from temp");
+            System.out.println(variable.getIdentifier());
+            System.out.println(variable.getValue().getValue());
             variable.setType(type);
             addVariable(variable);
         }
@@ -304,13 +309,10 @@ public class SemanticImpl{
         if (!checkVariableExistence(id)){
             throw new InvalidVariableException("Variable doesn't exist");
         }
-        System.out.println(expression.getType());
         if (!checkValidExistingType(expression.getType())){
             throw new InvalidTypeException("Type non existing");
         }
-        System.out.println("AD");
         Type identifierType = findVariableByIdentifier(id).getType();
-        System.out.println(identifierType.getName());
         if (!checkTypeCompatibility(identifierType, expression.getType())){
             String exceptionMessage = String.format("Incompatible types! %s doesn't match %s", identifierType, expression.getType());
             throw new InvalidFunctionException(exceptionMessage);
@@ -348,5 +350,14 @@ public class SemanticImpl{
     public void addVariableToTempList(Variable var){
         tempVariables.add(var);
     }
+
+    /* FOR */
+    public void createForScope(){
+        For f = new For("For" + forCounter++);
+        System.out.println("For");
+        scopeStack.push(f);
+        System.out.println("For");
+    }
+
 }
 

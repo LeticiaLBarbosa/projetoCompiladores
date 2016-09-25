@@ -185,7 +185,7 @@ modifier_loop ::=                                                       {:Logger
 ;
 
 variable_declarator_loop ::=
-    variable_declarator:var                                             {:Logger.print("Line 158");
+    variable_declarator:var                                             {:Logger.print("Line 158" + ((Variable) var).getIdentifier());
                                                                         SemanticImpl.getInstance().addVariableToTempList((Variable)var); RESULT = var;:}
     | variable_declarator:var COMMA variable_declarator_loop            {:Logger.print("Line 159");
                                                                         SemanticImpl.getInstance().addVariableToTempList((Variable)var);:}
@@ -202,7 +202,7 @@ attr_opt ::=                                                            {:Logger
 ;
 
 variable_initializer ::=
-    expression:e                                                        {:Logger.print("Line 167 - Teste de Exp " + e); RESULT = e;:}
+    expression:e                                                        {:Logger.print("Line 167 - Teste de Exp " + ((Expression)e).getValue()); RESULT = e;:}
     | LBRACE variable_initializer_opt RBRACE                            {:Logger.print("Line 168");:} //isso aqui tem como retornar uma expression? se nao, vai quebrar no value de variable
     | IDENTIFIER:id                                                     {:Logger.print("Line 170");
                                                                         SemanticImpl.getInstance().validateVariableName(id);
@@ -366,13 +366,10 @@ numeric_option ::= PLUSPLUS:op                                          {: Logge
 ;
 
 for_statement ::=
-	FOR LPAREN for_div_1 SEMICOLON expression_opt
-	RPAREN statement_block                                              {: Logger.print("Line 278");:}
-	| FOR LPAREN for_div_1 expression_opt
-	SEMICOLON RPAREN statement_block                                    {: Logger.print("Line 278");:}
-	| FOR LPAREN for_div_1 SEMICOLON RPAREN statement_block             {: Logger.print("Line 278");:}
-	| FOR LPAREN for_div_1 expression_opt SEMICOLON
-	expression_opt RPAREN statement_block                               {: Logger.print("Line 278");:}
+	  FOR LPAREN for_div_1:d1 SEMICOLON expression_opt:eopt RPAREN {:SemanticImpl.getInstance().createForScope();:} statement_block  {: Logger.print("Line 369");:}
+	| FOR LPAREN for_div_1:d1 expression_opt:eopt	SEMICOLON RPAREN {:SemanticImpl.getInstance().createForScope();:} statement_block  {: Logger.print("Line 370");:}
+	| FOR LPAREN for_div_1:d1 SEMICOLON RPAREN {:SemanticImpl.getInstance().createForScope();:}statement_block                  {: Logger.print("Line 371");:}
+	| FOR LPAREN for_div_1:d1 expression_opt:eopt1 SEMICOLON	expression_opt:eopt2 RPAREN {:SemanticImpl.getInstance().createForScope();:}statement_block {: Logger.print("Line 372");SemanticImpl.getInstance().exitCurrentScope();:}
 ;
 
 middle_operator ::=
@@ -389,8 +386,8 @@ middle_operator ::=
 ;
 
 for_div_1 ::=
-	variable_declaration                                                {: Logger.print(" Line 294");:}
-	| expression SEMICOLON                                              {: Logger.print(" Line 295");:}
+	variable_declaration:vd                                                {: Logger.print(" Line 294");RESULT= vd;:}
+	| expression:e SEMICOLON                                              {: Logger.print(" Line 295");:}
 	| SEMICOLON                                                         {: Logger.print("Line 296");:}
 ;
 
