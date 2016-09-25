@@ -178,7 +178,7 @@ public class SemanticImpl{
     }
 
     public boolean isNumericExpression(Expression le, Expression re) throws InvalidOperationException{
-        if(!le.isNumeric() || !re.isNumeric()){
+        if((le != null && !le.isNumeric()) || (re != null && !re.isNumeric())){
             throw new InvalidOperationException("Not a numeric expression");
         }
         return true;
@@ -320,6 +320,16 @@ public class SemanticImpl{
                     return new Expression(new Type("boolean"));
                 case XOR:
                     return new Expression(new Type("boolean"));
+                case OROR:
+                    return new Expression(new Type("boolean"));
+                case ANDAND:
+                    return new Expression(new Type("boolean"));
+                case ANDEQ:
+                    return new Expression(new Type("boolean"));
+                case OREQ:
+                    return new Expression(new Type("boolean"));
+                case OROREQ:
+                    return new Expression(new Type("boolean"));
                 case MINUS:
                     return new Expression(getMajorType(le.getType(), re.getType()));
                 case MULT:
@@ -329,6 +339,8 @@ public class SemanticImpl{
                 case PLUS:
                     return new Expression(getMajorType(le.getType(), re.getType()));
                 case DIV:
+                    return new Expression(getMajorType(le.getType(), re.getType()));
+                case DIVEQ:
                     return new Expression(getMajorType(le.getType(), re.getType()));
             }
         }

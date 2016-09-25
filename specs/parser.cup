@@ -409,7 +409,7 @@ numeric_expression ::=
                                                                         SemanticImpl.getInstance().isNumericExpression((Expression) e, null); RESULT = e;:}
     | numeric_option expression:e                                       {: Logger.print("Line 299");
                                                                         SemanticImpl.getInstance().isNumericExpression((Expression) e, null); RESULT=e;:}
-	| expression:e numeric_option:no                                    {:Logger.print("Line 300, numeric_option:" + "  ");
+	| expression:e numeric_option:no                                    {:Logger.print("Line 300, numeric_option:" + e);
 	                                                                    SemanticImpl.getInstance().isNumericExpression((Expression) e, null); RESULT=e;:}
 	| expression:le middle_operator:md expression:re                    {:Logger.print("Line 302 le " + le);
 					   								        		    SemanticImpl.getInstance().isNumericExpression((Expression) le,(Expression) re);
@@ -450,17 +450,28 @@ try_statement ::=
 ;
 
 logical_option ::=
-    AND                                                                 {: Logger.print("Line 323");:}
-    | ANDEQ                                                             {: Logger.print("Line 324");:}
-    | OR                                                                {: Logger.print("Line 325");:}
-    | OROR                                                              {: Logger.print("Line 326");:}
-    | OREQ                                                              {: Logger.print("Line 327");:}
-    | XOR                                                               {: Logger.print("Line 328");:}
-    | XOREQ                                                             {: Logger.print("Line 329");:}
-    | ANDAND                                                            {: Logger.print("Line 330");:}
-    | OROREQ                                                            {: Logger.print("Line 331");:}
-    | MOD                                                               {: Logger.print("Line 332");:}
-    | MODEQ                                                             {: Logger.print("Line 333");:}
+    AND                                                                 {: Logger.print("Line 323");
+                                                                        RESULT = new Node("&","primary", "AND");:}
+    | ANDEQ                                                             {: Logger.print("Line 324");
+                                                                        RESULT = new Node("&=","primary", "ANDEQ");:}
+    | OR                                                                {: Logger.print("Line 325");
+                                                                        RESULT = new Node("|","primary", "OR");:}
+    | OROR                                                              {: Logger.print("Line 326");
+                                                                        RESULT = new Node("||","primary", "OROR");:}
+    | OREQ                                                              {: Logger.print("Line 327");
+                                                                        RESULT = new Node("|=","primary", "OREQ");:}
+    | XOR                                                               {: Logger.print("Line 328");
+                                                                        RESULT = new Node("^","primary", "XOR");:}
+    | XOREQ                                                             {: Logger.print("Line 329");
+                                                                        RESULT = new Node("^=","primary", "XOREQ");:}
+    | ANDAND                                                            {: Logger.print("Line 330");
+                                                                        RESULT = new Node("&&","primary", "ANDAND");:}
+    | OROREQ                                                            {: Logger.print("Line 331");
+                                                                        RESULT = new Node("||=","primary", "OROREQ");:}
+    | MOD                                                               {: Logger.print("Line 332");
+                                                                        RESULT = new Node("%","primary", "MOD");:}
+    | MODEQ                                                             {: Logger.print("Line 333");
+                                                                        RESULT = new Node("%=","primary", "MODEQ");:}
 ;
 
 
@@ -541,10 +552,12 @@ literal_expression ::=
 ;
 
 logical_expression ::=
-	NOT expression:e                                                    {: Logger.print("Line 397 " + e);:}
-	| expression logical_option expression                              {: Logger.print("Line 398");:}
-	| expression QUESTION expression COLON expression                   {: Logger.print("Line 399");:}
-	| BOOLEAN_LITERAL:bl                                                {:Logger.print("400 Ta Chegando em boolean_Literal "+bl);
+	NOT expression:e                                                    {: Logger.print("Line 397 " + e); RESULT = e;:}
+	| expression:le logical_option:lo expression:re                     {: Logger.print("Line 398");
+	                                                                    RESULT = SemanticImpl.getInstance().getExpression((Expression) le,
+                                                                        Operation.valueOf(((Node) lo).getIdentifier()), (Expression) re);:}
+	| expression:e1 QUESTION expression:e2 COLON expression:e3          {: Logger.print("Line 399"); RESULT = e1;:}
+	| BOOLEAN_LITERAL:bl                                                {:Logger.print("Line 400 "+bl);
 	                                                                    RESULT = new Expression(new Type("boolean"),bl.toString());:}
 ;
 

@@ -9,6 +9,7 @@
  /.idea/libraries  
 /.idea/workspace.xml 
 /.idea/libraries out/ .idea/ .idea
+/bin
 .idea
 .gitignore
 .idea/
