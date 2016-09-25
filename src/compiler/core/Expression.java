@@ -37,7 +37,12 @@ public class Expression {
 				||getType().getName().equals("long")
 				||getType().getName().equals("double");
 	}
-	
+
+    public boolean isString() {
+        System.out.println(getType().getName());
+        return getType().getName().equalsIgnoreCase("String");
+    }
+
 	public String toString(){
 		return "Expression of type; " + getType();
 	}

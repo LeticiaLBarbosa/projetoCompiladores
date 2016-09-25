@@ -65,10 +65,18 @@ public class SemanticImpl{
         List<String> intCompTypes = new ArrayList<String>();
         intCompTypes.add("int");
 
+        List<String> stringCompTypes = new ArrayList<String>();
+        stringCompTypes.add("int");
+        stringCompTypes.add("double");
+        stringCompTypes.add("long");
+        stringCompTypes.add("float");
+        stringCompTypes.add("char");
+
         tiposCompativeis.put("double", doubleCompTypes);
         tiposCompativeis.put("float", floatCompTypes);
         tiposCompativeis.put("long", longCompTypes);
         tiposCompativeis.put("int", intCompTypes);
+        tiposCompativeis.put("String", stringCompTypes);
     }
 
     private void createNewScope(ScopedEntity scope) {
@@ -171,16 +179,29 @@ public class SemanticImpl{
     }
 
     public boolean isNumericExpression(Expression le, Expression re) throws InvalidOperationException{
-        if(!le.isNumeric() || !re.isNumeric()){
-            throw new InvalidOperationException("Not a numeric expression");
+        if((le != null && !le.isNumeric()) || (re != null && !re.isNumeric())){
+            if(!isStringExpression(le, re)){
+                throw new InvalidOperationException("Not a numeric or string expression");
+            }
         }
         return true;
     }
 
-    public boolean isNumericExpression(Expression le) throws InvalidOperationException{
-        if(!le.isNumeric()){
-            throw new InvalidOperationException("Not a numeric expression");
+    public boolean isStringExpression(Expression le, Expression re) throws InvalidOperationException {
+        System.out.println("le "+le);
+        System.out.println("re "+re);
+        if((le != null && !le.isString()) && (re != null && !re.isString())){
+            System.out.println(le.isString());
+            throw new InvalidOperationException("Not a string expression");
         }
+        return true;
+    }
+
+    public boolean isRelationalExpression(Expression le, Expression re) throws InvalidOperationException {
+        if(!le.getType().equals(re.getType())){
+            throw new InvalidOperationException("Not a relational expression!");
+        }
+
         return true;
     }
 
@@ -201,6 +222,7 @@ public class SemanticImpl{
             throw new InvalidTypeException("Type non existing");
         }
     }
+
     private void validateVariableGlobal(Variable variable) throws Exception{
         if (checkVariableExistenceGlobal(variable.getIdentifier())){
             throw new InvalidVariableException("Name already exists");
@@ -274,11 +296,10 @@ public class SemanticImpl{
     }
 
     private void checkDeclaredAndReturnedType(String functionName,Type declaredType, Expression exp) throws InvalidFunctionException {
-        if(!declaredType.equals(exp.getType())){
+        if(!declaredType.equals(exp.getType()) && !declaredType.equals(new Type("void"))){
             throw new InvalidFunctionException("The function "+functionName+" didn't return the expected type: "+declaredType+". It returns "+exp.getType() + " instead");
         }
     }
-
 
     private void checkExistingParameter(ArrayList<Parameter> params) throws InvalidParameterException {
         for(int i=0; i<params.size();i++){
@@ -291,13 +312,56 @@ public class SemanticImpl{
     }
 
     //FIXME: INCOMPLETE
-    public Expression getExpression(Expression le, String md, Expression re) throws InvalidTypeException{
-        System.out.println("No getexpression                  " + le.getType().getName() + "   " + re.getType().getName());
-        if (checkTypeCompatibility(le.getType(), re.getType())
-                || checkTypeCompatibility(re.getType(), le.getType())){
-            Type newType =  getMajorType(le.getType(), re.getType());
-            return new Expression(newType);
+    public Expression getExpression(Expression le, Operation md, Expression re) throws InvalidTypeException{
+        if (checkTypeCompatibility(le.getType(), re.getType()) || checkTypeCompatibility(re.getType(), le.getType())){
+            switch (md) {
+                case AND:
+                    return new Expression(new Type("boolean"));
+                case OR:
+                    return new Expression(new Type("boolean"));
+                case EQEQ:
+                    return new Expression(new Type("boolean"));
+                case GTEQ:
+                    return new Expression(new Type("boolean"));
+                case LTEQ:
+                    return new Expression(new Type("boolean"));
+                case LT:
+                    return new Expression(new Type("boolean"));
+                case GT:
+                    return new Expression(new Type("boolean"));
+                case NOTEQ:
+                    return new Expression(new Type("boolean"));
+                case NOT:
+                    return new Expression(new Type("boolean"));
+                case XOREQ:
+                    return new Expression(new Type("boolean"));
+                case XOR:
+                    return new Expression(new Type("boolean"));
+                case OROR:
+                    return new Expression(new Type("boolean"));
+                case ANDAND:
+                    return new Expression(new Type("boolean"));
+                case ANDEQ:
+                    return new Expression(new Type("boolean"));
+                case OREQ:
+                    return new Expression(new Type("boolean"));
+                case OROREQ:
+                    return new Expression(new Type("boolean"));
+                case MINUS:
+                    return new Expression(getMajorType(le.getType(), re.getType()));
+                case MULT:
+                    return new Expression(getMajorType(le.getType(), re.getType()));
+                case MOD:
+                    return new Expression(getMajorType(le.getType(), re.getType()));
+                case PLUS:
+                    return new Expression(getMajorType(le.getType(), re.getType()));
+                case DIV:
+                    return new Expression(getMajorType(le.getType(), re.getType()));
+                case DIVEQ:
+                    return new Expression(getMajorType(le.getType(), re.getType()));
+            }
         }
+
         throw new InvalidTypeException("Not allowed!");
     }
 
