@@ -11,7 +11,7 @@ import java.io.FileReader;
 public class Main {
 
     public static void main(String[] args) {
-        String filePath = "examples/ExemploTeste.txt";
+        String filePath = "examples/Test.txt";
         Scanner scanner = null;
         try {
             scanner = new Scanner(new BufferedReader(new FileReader(filePath)));
