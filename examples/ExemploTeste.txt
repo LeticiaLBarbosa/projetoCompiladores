@@ -81,4 +81,10 @@ public class Test extends Main implements Serializable {
         }
     }
 
+    public void testingFor(){
+        for(int i = 0; i < 12; i++){
+            String s = "testando o for " + i;
+        }
+    }
+
 }

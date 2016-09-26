@@ -76,6 +76,7 @@ public class SemanticImpl{
         tiposCompativeis.put("float", floatCompTypes);
         tiposCompativeis.put("long", longCompTypes);
         tiposCompativeis.put("int", intCompTypes);
+        tiposCompativeis.put("string", stringCompTypes);
         tiposCompativeis.put("String", stringCompTypes);
     }
 
