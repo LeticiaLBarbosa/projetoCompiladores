@@ -1,4 +1,4 @@
-*.class   
+﻿*.class   
 # Package Files
 #
  *.war
@@ -15,8 +15,6 @@
 .idea/
 dist/
 out/
-src/compiler/core/Operation.java
 src/compiler/main/
-src/compiler/util/Node.java
 examples/
 bin/
