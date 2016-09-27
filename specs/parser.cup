@@ -236,7 +236,7 @@ brack_loop ::=                                                          {:Logger
 ;
 
 type ::=
-    type_specifier:t brack_loop                                         {:Logger.print("Line 188"); RESULT = t;:}
+    type_specifier:t brack_loop                                         {:Logger.print("Line 188 tipo: "+t); RESULT = t;:}
 ;
 
 parameter ::=
@@ -336,11 +336,11 @@ expression ::=
     | logical_expression:lge                                            {: Logger.print("Line 264 " + lge);RESULT = lge;:}
     | string_expression:se                                              {: Logger.print("Line 259 ");RESULT = se;:}
     | bit_expression:be                                                 {: Logger.print("Line 260 ");RESULT = be;:}
-    | casting_expression:ce                                             {: Logger.print("Line 261 ");RESULT = ce;:}
+    | casting_expression:ce                                             {: Logger.print("Line 261 "+ ce);RESULT = ce;:}
     | creating_expression:cre                                           {: Logger.print("Line 262 ");RESULT = cre;:}
     | literal_expression:le                                             {:Logger.print("Line 263, le = " + ((Expression)le).getValue()); RESULT = le;:}
     | attribution:attr                                                  {: Logger.print(" Line 269 ");RESULT = attr;:}
-    | NULL_LITERAL:nl                                                   {: Logger.print("Line 265 ");RESULT = nl;:}
+    | NULL_LITERAL:nl                                                   {: Logger.print("Line 265 null "+nl);RESULT = nl;:}
     | SUPER:sup                                                         {: Logger.print("Line 266 ");RESULT = sup;:}
     | THIS:th                                                           {: Logger.print("Line 267 ");RESULT = th;:}
     | IDENTIFIER:id                                                     {: Logger.print("Line 268 " + id);
@@ -351,8 +351,9 @@ expression ::=
                                                                         }else{
                                                                             RESULT = new Expression(var.getType(), var.getIdentifier());
                                                                         }:}
-    | LPAREN expression:e RPAREN                                          {: Logger.print("LINE 270 "+e); RESULT = e;:}
-    | expression expression_end_option                                  {: Logger.print("LINE 271");:}
+    | LPAREN expression:e RPAREN                                        {: Logger.print("LINE 270 "+e); RESULT = e;:}
+    | expression:e expression_end_option:ep                             {: Logger.print("LINE 271 "+e);
+                                                                        RESULT = e;:}
 ;
 
 attribution ::= IDENTIFIER:id EQ expression:e                           {: Logger.print("Line 273 " + e);
@@ -501,12 +502,16 @@ bit_operation ::=
 ;
 
 casting_expression ::=
-	LPAREN type RPAREN expression                                       {: Logger.print("Line 361");:}
+	LPAREN type:t RPAREN expression:e                                   {: Logger.print("Line 361 casting: "+e);
+	                                                                    SemanticImpl.getInstance().checkTypeCompatibility((Type)t, ((Expression)e).getType());
+	                                                                    ((Expression) e).setType((Type) t);
+	                                                                    Logger.print("Linha " + e);
+	                                                                    RESULT = e;:}
 ;
 
 bit_expression ::=
-	COMP expression                                                     {: Logger.print("Line 364");:}
-	| expression bit_operation expression                               {: Logger.print("Line 365");:}
+	COMP expression:e                                                     {: Logger.print("Line 364");RESULT=e;:}
+	| expression:e bit_operation expression:e2                            {: Logger.print("Line 365");RESULT=e;:}
 ;
 
 switch_clausulas_loop ::=                                               {: Logger.print("Line 368");:}
@@ -563,11 +568,11 @@ identifier_opt ::=                                                      {: Logge
 ;
 
 expression_end_option ::=
-    LPAREN arglist_opt RPAREN                                           {: Logger.print("Line 408");:}
-    | LBRACK expression RBRACK                                          {: Logger.print("Line 409");:}
-    | DOT expression                                                    {: Logger.print("Line 410");:}
-    | COMMA expression                                                  {: Logger.print("Line 411");:}
-    | INSTANCEOF entity_name                                            {: Logger.print("Line 412");:}
+    LPAREN arglist_opt: args RPAREN                                      {: Logger.print("Line 408"); RESULT = args;:}
+    | LBRACK expression:e RBRACK                                         {: Logger.print("Line 409"); RESULT = e;:}
+    | DOT expression:e                                                   {: Logger.print("Line 410"); RESULT = e;:}
+    | COMMA expression:e                                                 {: Logger.print("Line 411"); RESULT = e;:}
+    | INSTANCEOF entity_name:en                                          {: Logger.print("Line 412"); RESULT = en;:}
 ;
 
 arglist_opt ::=
