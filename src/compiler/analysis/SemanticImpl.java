@@ -202,7 +202,6 @@ public class SemanticImpl{
         if(!le.getType().equals(re.getType())){
             throw new InvalidOperationException("Not a relational expression!");
         }
-
         return true;
     }
 
@@ -360,6 +359,12 @@ public class SemanticImpl{
                     return new Expression(getMajorType(le.getType(), re.getType()));
                 case DIVEQ:
                     return new Expression(getMajorType(le.getType(), re.getType()));
+                case PLUSEQ:
+                    return new Expression(getMajorType(le.getType(), re.getType()));
+                case MINUSEQ:
+                    return new Expression(getMajorType(le.getType(), re.getType()));
+                case MULTEQ:
+                    return new Expression(getMajorType(le.getType(), re.getType()));
             }
         }
 
@@ -417,9 +422,33 @@ public class SemanticImpl{
     }
 
     /* FOR */
-    public void createForScope(){
-        For f = new For("For" + forCounter++);
+    public void createForScope(Variable var, Expression bexp, Expression aexp) throws InvalidTypeException{
         System.out.println("For");
+        For f = new For("For" + forCounter++);
+        System.out.println(var);
+        for(Variable v: getCurrentScope().getVariable().values()){
+            System.out.println(v.getIdentifier());
+
+            f.addVariable(v);
+        }
+        if(var != null){
+            f.addVariable(var);
+        }
+        for(Variable v : tempVariables){
+            if (v.equals(var)){
+                tempVariables.remove(v);
+            }
+        }
+        if(bexp != null){
+            if(!bexp.getType().getName().equals("boolean")){
+                throw new InvalidTypeException("A expressão deveria ser boolean");
+            }
+        }
+        if(aexp != null){
+            if(aexp.getType().getName().equals("boolean")){
+                throw new InvalidTypeException("A expressão deve ser aritmetica");
+            }
+        }
         scopeStack.push(f);
         System.out.println("For");
     }
