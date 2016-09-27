@@ -145,6 +145,8 @@ public class SemanticImpl{
     }
 
     public boolean checkTypeCompatibility(Type leftType, Type rightType) {
+        System.out.print("Left: "+leftType);
+        System.out.print("Right: "+rightType);
         if (leftType.equals(rightType)){
             return true;
         } else {
@@ -202,7 +204,6 @@ public class SemanticImpl{
         if(!le.getType().equals(re.getType())){
             throw new InvalidOperationException("Not a relational expression!");
         }
-
         return true;
     }
 
@@ -264,8 +265,8 @@ public class SemanticImpl{
     public void addVariablesFromTempList(Type type) throws Exception{
         for (Variable variable : tempVariables) {
             System.out.println("Add variavel from temp");
-            System.out.println(variable.getIdentifier());
-            System.out.println(variable.getValue().getValue());
+            System.out.println("Variable identifier " + variable.getIdentifier());
+            System.out.println("Variable type: " + variable.getValue());
             variable.setType(type);
             addVariable(variable);
         }

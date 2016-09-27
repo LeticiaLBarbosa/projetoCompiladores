@@ -23,6 +23,10 @@ public class Expression {
 	public String getValue() {
 		return value;
 	}
+
+	public void setType(Type type){
+        this.type = type;
+    }
 	
 	public String getContext(){
 		return this.context;
