@@ -71,6 +71,7 @@ public class SemanticImpl{
         stringCompTypes.add("long");
         stringCompTypes.add("float");
         stringCompTypes.add("char");
+        stringCompTypes.add("null");
 
         tiposCompativeis.put("double", doubleCompTypes);
         tiposCompativeis.put("float", floatCompTypes);
@@ -86,7 +87,6 @@ public class SemanticImpl{
 
     public void exitCurrentScope() throws InvalidFunctionException {
         ScopedEntity scoped = scopeStack.pop();
-        System.out.println("saiu do escopo");
     }
 
     public void exitCurrentScope(Expression exp) throws InvalidFunctionException {
@@ -95,7 +95,6 @@ public class SemanticImpl{
             if(exp != null) {
                 checkDeclaredAndReturnedType(scoped.getName(), ((Function) scoped).getDeclaredReturnType(), exp);
             }else{
-                System.out.println("O declared eh: "+((Function) scoped).getDeclaredReturnType());
                 if(!((Function) scoped).getDeclaredReturnType().equals(new Type("void"))){
                     throw new InvalidFunctionException("The function "+scoped.getName() +" is missing a return statement in the end of it");
                 }
@@ -108,10 +107,8 @@ public class SemanticImpl{
     }
 
     public void addFunctionAndNewScope(Function f) {
-        System.out.println(f.getName());
         functions.add(f);
         createNewScope(f);
-        System.out.println("Criou novo escopo");
     }
 
     public boolean checkVariableExistence(String variableName) {
@@ -145,8 +142,6 @@ public class SemanticImpl{
     }
 
     public boolean checkTypeCompatibility(Type leftType, Type rightType) {
-        System.out.print("Left: "+leftType);
-        System.out.print("Right: "+rightType);
         if (leftType.equals(rightType)){
             return true;
         } else {
@@ -174,7 +169,6 @@ public class SemanticImpl{
     }
 
     public boolean checkTypeOfAssignment(Variable variable, Expression exp) throws InvalidTypeAssignmentException{
-        System.out.println(variable.getType());
         if (!variable.getType().equals(exp.getType())){
             throw new InvalidTypeAssignmentException("Alguma msg aqui");
         }
@@ -191,10 +185,7 @@ public class SemanticImpl{
     }
 
     public boolean isStringExpression(Expression le, Expression re) throws InvalidOperationException {
-        System.out.println("le "+le);
-        System.out.println("re "+re);
         if((le != null && !le.isString()) && (re != null && !re.isString())){
-            System.out.println(le.isString());
             throw new InvalidOperationException("Not a string expression");
         }
         return true;
@@ -221,7 +212,9 @@ public class SemanticImpl{
             throw new InvalidVariableException("Name already exists");
         }
         if (!checkValidExistingType(variable.getType())){
-            throw new InvalidTypeException("Type non existing");
+            if(!variable.getValue().getType().getName().equals("null")){
+                throw new InvalidTypeException("Type non existing");
+            }
         }
     }
 
@@ -230,7 +223,9 @@ public class SemanticImpl{
             throw new InvalidVariableException("Name already exists");
         }
         if (!checkValidExistingType(variable.getType())){
-            throw new InvalidTypeException("Type non existing");
+            if(!variable.getValue().getType().getName().equals("null")) {
+                throw new InvalidTypeException("Type non existing");
+            }
         }
     }
 
@@ -243,18 +238,13 @@ public class SemanticImpl{
      * @throws Exception
      */
     private void addVariable(Variable variable) throws Exception{
-        for(String v : variables.keySet()){
-            System.out.println(v);
-        }
-        System.out.println("Tentou add o i");
+
         if(scopeStack.isEmpty()){
             validateVariableGlobal(variable);
             variables.put(variable.getIdentifier(),variable);
         }else{
             validateVariable(variable);
-
             getCurrentScope().addVariable(variable);
-            System.out.println("Adicionou ao escopo");
         }
 
         if (variable.getValue() != null){
@@ -264,9 +254,6 @@ public class SemanticImpl{
 
     public void addVariablesFromTempList(Type type) throws Exception{
         for (Variable variable : tempVariables) {
-            System.out.println("Add variavel from temp");
-            System.out.println("Variable identifier " + variable.getIdentifier());
-            System.out.println("Variable type: " + variable.getValue());
             variable.setType(type);
             addVariable(variable);
         }
@@ -275,7 +262,6 @@ public class SemanticImpl{
     }
 
     public void validateFunction(String functionName, ArrayList<Parameter> params, Type declaredType) throws InvalidFunctionException, InvalidParameterException{
-        System.out.println("VAlidate Function" + params + declaredType);
         if(declaredType == null){
             throw new InvalidFunctionException("The function "+functionName +" is missing either a declared return type or a return statement in the end of it");
         }
@@ -376,7 +362,9 @@ public class SemanticImpl{
             throw new InvalidVariableException("Variable doesn't exist");
         }
         if (!checkValidExistingType(expression.getType())){
-            throw new InvalidTypeException("Type non existing");
+            if(!expression.getType().getName().equals("null")) {
+                throw new InvalidTypeException("Type non existing");
+            }
         }
         Type identifierType = findVariableByIdentifier(id).getType();
         if (!checkTypeCompatibility(identifierType, expression.getType())){
@@ -420,9 +408,7 @@ public class SemanticImpl{
     /* FOR */
     public void createForScope(){
         For f = new For("For" + forCounter++);
-        System.out.println("For");
         scopeStack.push(f);
-        System.out.println("For");
     }
 
 }
