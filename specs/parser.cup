@@ -195,7 +195,8 @@ variable_declarator_loop ::=
 
 variable_declarator ::=
     IDENTIFIER:id brack_loop attr_opt:exp                               {:Logger.print("Line 161");
-                                                                        Variable temp = new Variable((String) id, null, (Expression) exp);
+                                                                        Variable temp = new Variable((String) id,new Type("null"), (Expression) exp);
+                                                                        Logger.print("Temp type "+ temp);
                                                                         RESULT = temp;:}
 ;
 
@@ -342,7 +343,6 @@ expression ::=
     | creating_expression:cre                                           {: Logger.print("Line 262 ");RESULT = cre;:}
     | literal_expression:le                                             {:Logger.print("Line 263, le = " + ((Expression)le).getValue()); RESULT = le;:}
     | attribution:attr                                                  {: Logger.print(" Line 269 ");RESULT = attr;:}
-    | NULL_LITERAL:nl                                                   {: Logger.print("Line 265 null "+nl);RESULT = nl;:}
     | SUPER:sup                                                         {: Logger.print("Line 266 ");RESULT = sup;:}
     | THIS:th                                                           {: Logger.print("Line 267 ");RESULT = th;:}
     | IDENTIFIER:id                                                     {: Logger.print("Line 268 " + id);
@@ -551,8 +551,8 @@ literal_expression ::=
                                                                         Logger.print("Line 391, valor do C: "+c);:}
     | STRING_LITERAL:s                                                  {:RESULT = new Expression(new Type("string"), s.toString());
                                                                         Logger.print("Line 392, valor do S: "+s);:}
-    | NULL_LITERAL:n                                                    {:RESULT = new Expression(new Type("null"), n.toString());
-                                                                        Logger.print("Line 393, valor do N: "+n);:}
+    | NULL_LITERAL:n                                                    {:RESULT = new Expression(new Type("null"), (String) n);
+                                                                        Logger.print("Line 393, valor do N: ");:}
 ;
 
 logical_expression ::=
