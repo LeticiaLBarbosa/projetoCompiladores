@@ -5,6 +5,11 @@ import import3;
 public class ExemploTeste{
 
     public void re(int a, int b, int c){
-         for(int i = 10;i>0 ;i-- ){}
+
+         for(int i = 10;i>0 ; i+=1){
+            a = b + i;
+         }
+         int i = 1;
+
     }
 }
