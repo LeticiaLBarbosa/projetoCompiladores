@@ -155,7 +155,9 @@ method_declaration ::=
     parameter_list_opt:p RPAREN                                         {:Logger.print("Line 136 ");
                                                                         SemanticImpl.getInstance().validateFunction(id,(ArrayList<Parameter>) p,(Type)t);:}
     end_option:ep                                                       {:Logger.print("Line 136b "+ ep);
-                                                                        SemanticImpl.getInstance().exitCurrentScope((Expression) ep);:}
+                                                                          if(ep instanceof Expression) SemanticImpl.getInstance().exitCurrentScope((Expression) ep);
+                                                                          else  SemanticImpl.getInstance().exitCurrentScope();
+                                                                          :}
 ;
 
 constructor_declaration ::=
@@ -164,7 +166,7 @@ constructor_declaration ::=
 
 variable_declaration ::=
     type:t variable_declarator_loop:v SEMICOLON                         {:Logger.print("Line 140");
-                                                                        SemanticImpl.getInstance().addVariablesFromTempList((Type) t);:}
+                                                                        SemanticImpl.getInstance().addVariablesFromTempList((Type) t);RESULT=v;:}
     | modifier_loop type variable_declarator_loop SEMICOLON             {:Logger.print("Line 141");:};
 
 modifier ::=
@@ -323,7 +325,7 @@ else_opt ::=                                                            {: Logge
 ;
 
 do_statement ::=
-    DO statement WHILE LPAREN expression RPAREN COMMA                   {: Logger.print("Line 253");:}
+    DO statement WHILE LPAREN expression RPAREN SEMICOLON               {: Logger.print("Line 253");:}
 ;
 
 while_statement ::=
@@ -397,7 +399,7 @@ middle_operator ::=
 ;
 
 for_div_1 ::=
-	variable_declaration:vd                                                {: Logger.print(" Line 294");RESULT= vd;:}
+	variable_declaration:vd                                                {: Logger.print(" Line 294" + vd);RESULT= vd;:}
 	| expression:e SEMICOLON                                              {: Logger.print(" Line 295"); RESULT = e;:}
 	| SEMICOLON                                                         {: Logger.print("Line 296"); RESULT = null;:}
 ;

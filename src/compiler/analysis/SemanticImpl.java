@@ -134,11 +134,21 @@ public class SemanticImpl{
         return variables.get(variableName) != null ? true : false;
     }
 
-    public void checkFunctionExistence(Function temp) throws InvalidFunctionException {
-        if(javaProgram.getFunctions().get(temp.getName()) != null){
-            throw new InvalidFunctionException("ERROR: The function "+temp.getName()+" has already been declared!");
+    public boolean checkFunctionExistence(Function temp) throws InvalidFunctionException {
+        for(Function fun : functions){
+            if(fun.getName().equals(temp.getName())) {
+                if(!fun.getDeclaredReturnType().getName().equals(temp.getDeclaredReturnType().getName())){
+                    throw new InvalidFunctionException("ERROR: The function "+temp.getName()+" has already been declared with another return type!");
+                }
+                if(temp.equals(fun)){
+                    throw new InvalidFunctionException("ERROR: The function " + temp.getName() + " has already been declared with the same parameters!");
+                }
+
+            }
         }
+        return true;
     }
+
 
     public boolean checkValidExistingType(Type type) {
         return BASIC_TYPES.contains(type) || secondaryTypes.contains(type);
@@ -264,9 +274,6 @@ public class SemanticImpl{
 
     public void addVariablesFromTempList(Type type) throws Exception{
         for (Variable variable : tempVariables) {
-            System.out.println("Add variavel from temp");
-            System.out.println("Variable identifier " + variable.getIdentifier());
-            System.out.println("Variable type: " + variable.getValue());
             variable.setType(type);
             addVariable(variable);
         }
@@ -280,15 +287,17 @@ public class SemanticImpl{
             throw new InvalidFunctionException("The function "+functionName +" is missing either a declared return type or a return statement in the end of it");
         }
         Function temp = new Function(functionName, params);
-        if(params != null){
-            for(Parameter p : params){
-                variables.put(p.getIdentifier(), (Variable) p);
-            }
-            checkExistingParameter(params);
-            checkFunctionExistence(temp);
-        }
         temp.setDeclaredReturnedType(declaredType);
-        addFunctionAndNewScope(temp);
+        if(checkFunctionExistence(temp)){
+            if(params != null){
+                for(Parameter p : params){
+                    variables.put(p.getIdentifier(), (Variable) p);
+                }
+                checkExistingParameter(params);
+            }
+            addFunctionAndNewScope(temp);
+        }
+
     }
 
     private void hasReturn(Expression exp) throws InvalidFunctionException {
@@ -425,21 +434,13 @@ public class SemanticImpl{
 
     /* FOR */
     public void createForScope(Variable var, Expression bexp, Expression aexp) throws InvalidTypeException{
-        System.out.println("For");
         For f = new For("For" + forCounter++);
-        System.out.println(var);
         for(Variable v: getCurrentScope().getVariable().values()){
-            System.out.println(v.getIdentifier());
-
             f.addVariable(v);
         }
         if(var != null){
             f.addVariable(var);
-        }
-        for(Variable v : tempVariables){
-            if (v.equals(var)){
-                tempVariables.remove(v);
-            }
+            getCurrentScope().getVariable().remove(var.getIdentifier());
         }
         if(bexp != null){
             if(!bexp.getType().getName().equals("boolean")){
@@ -452,7 +453,6 @@ public class SemanticImpl{
             }
         }
         scopeStack.push(f);
-        System.out.println("For");
     }
 
 }
