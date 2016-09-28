@@ -114,8 +114,10 @@ public class SemanticImpl{
     public boolean checkVariableExistence(String variableName) {
         if(!scopeStack.isEmpty() && getCurrentScope().getVariable().get(variableName) != null){
             return true;
+        }else if(variables.get(variableName) != null){
+            return true;
         }else{
-            return variables.get(variableName) != null ? true : false;
+            return false;
         }
     }
 
@@ -144,6 +146,25 @@ public class SemanticImpl{
             }
         }
         return true;
+    }
+
+    public boolean verifyCall(String funcName, ArrayList<Expression> args) throws InvalidFunctionException {
+
+        for (Function f : functions){
+            if(f.getName().equals(funcName)){
+                ArrayList<Parameter> p = (ArrayList<Parameter>) f.getParams();
+                if(p.size() != args.size()){
+                    throw new InvalidFunctionException("The method call of " + funcName + " has incorrect number of arguments");
+                }
+                for(int i = 0; i < p.size(); i++){
+                    if(!p.get(i).getType().getName().equals(args.get(i).getType().getName())){
+                        throw new InvalidFunctionException("The method call of " + funcName + " expects a " + p.get(i).getType().getName() + " but got the type " + args.get(i).getType().getName());
+                    }
+                }
+                return true;
+            }
+        }
+        throw new InvalidFunctionException("The function " + funcName + " may have not been declared");
     }
 
 
@@ -248,7 +269,9 @@ public class SemanticImpl{
      * @throws Exception
      */
     private void addVariable(Variable variable) throws Exception{
-
+        if(validateVariableNameForFunction(variable.getIdentifier())){
+            throw new InvalidVariableException("Sorry this id is already used by a method");
+        }
         if(scopeStack.isEmpty()){
             validateVariableGlobal(variable);
             variables.put(variable.getIdentifier(),variable);
@@ -260,6 +283,16 @@ public class SemanticImpl{
         if (variable.getValue() != null){
             checkVariableAttribution(variable.getIdentifier(), variable.getValue());
         }
+    }
+
+    private boolean validateVariableNameForFunction(String variableName) {
+        for(Function f : functions){
+            System.out.println(f.getName());
+            if (f.getName().equals(variableName)){
+                return true;
+            }
+        }
+        return false;
     }
 
     public void addVariablesFromTempList(Type type) throws Exception{
@@ -390,6 +423,24 @@ public class SemanticImpl{
             throw new InvalidFunctionException(exceptionMessage);
         }
     }
+    public void checkVariableAttribution(String id, String function) throws InvalidVariableException, InvalidTypeException, InvalidFunctionException{
+        if (!checkVariableExistence(id)){
+            throw new InvalidVariableException("Variable doesn't exist");
+        }
+        Type identifierType = findVariableByIdentifier(id).getType();
+
+        for(Function f : functions){
+            if(f.getName().equals(function)){
+                if (!checkTypeCompatibility(identifierType, f.getDeclaredReturnType())){
+                    String exceptionMessage = String.format("Incompatible types! %s doesn't match %s", identifierType, f.getDeclaredReturnType());
+                    throw new InvalidFunctionException(exceptionMessage);
+                }
+            }
+        }
+
+
+    }
+
 
     public Variable findVariableByIdentifier(String variableName){
         if(!scopeStack.isEmpty() && getCurrentScope().getVariable().get(variableName) != null){
