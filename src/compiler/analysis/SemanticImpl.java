@@ -20,10 +20,18 @@ public class SemanticImpl{
     private static Map<String, List<String>> tiposCompativeis = new HashMap<String, List<String>>();
     private int forCounter = 0;
     private static SemanticImpl singleton;
+
+    public static CodeGenerator getCodeGenerator() {
+        return codeGenerator;
+    }
+
+    static CodeGenerator codeGenerator;
+    private static String currentOperator;
     private Program javaProgram;
     public static SemanticImpl getInstance(){
         if(singleton ==  null){
             singleton = new SemanticImpl();
+            codeGenerator = new CodeGenerator();
             initTypeCompatibility();
         }
         return singleton;
@@ -496,6 +504,130 @@ public class SemanticImpl{
         }
         scopeStack.push(f);
     }
+
+    public void generateBaseOpRelationalCode(String op, Expression e1,
+                                             Expression e2) throws InvalidOperationException {
+        Boolean result;
+        Register r;
+        if (checkTypeCompatibility(e1.getType(), e2.getType())
+                || checkTypeCompatibility(e2.getType(), e1.getType())) {
+            switch (op) {
+                case "!=":
+                    currentOperator = "!=";
+                    codeGenerator.generateSUBCode();
+                    codeGenerator.generateBEQZCode(3);
+                    r = codeGenerator.generateLDCode(new Expression(new Type(
+                            "boolean"), "#1"));
+                    codeGenerator.generateBRCode(2);
+                    codeGenerator.generateLDCode(r, new Expression(new Type(
+                            "boolean"), "#0"));
+                    break;
+                case "==":
+                    currentOperator = "==";
+                    codeGenerator.generateSUBCode();
+                    codeGenerator.generateBNEQZCode(3);
+                    r = codeGenerator.generateLDCode(new Expression(new Type(
+                            "boolean"), "#1"));
+                    codeGenerator.generateBRCode(2);
+                    codeGenerator.generateLDCode(r, new Expression(new Type(
+                            "boolean"), "#0"));
+                    break;
+                case ">=":
+                    currentOperator = ">=";
+                    codeGenerator.generateSUBCode();
+                    codeGenerator.generateBLTZCode(3);
+                    r = codeGenerator.generateLDCode(new Expression(new Type(
+                            "boolean"), "#1"));
+                    codeGenerator.generateBRCode(2);
+                    codeGenerator.generateLDCode(r, new Expression(new Type(
+                            "boolean"), "#0"));
+                    break;
+                case "<=":
+                    currentOperator = "<=";
+                    codeGenerator.generateSUBCode();
+                    codeGenerator.generateBGTZCode(3);
+                    r = codeGenerator.generateLDCode(new Expression(new Type(
+                            "boolean"), "#1"));
+                    codeGenerator.generateBRCode(2);
+                    codeGenerator.generateLDCode(r, new Expression(new Type(
+                            "boolean"), "#0"));
+                    break;
+                case ">":
+                    currentOperator = ">";
+                    System.out.println("Entrou no certo");
+                    codeGenerator.generateSUBCode();
+                    codeGenerator.generateBLEQZCode(3);
+                    r = codeGenerator.generateLDCode(new Expression(new Type(
+                            "boolean"), "#1"));
+                    codeGenerator.generateBRCode(2);
+                    codeGenerator.generateLDCode(r, new Expression(new Type(
+                            "boolean"), "#0"));
+                    break;
+                case "<":
+                    currentOperator = "<";
+                    codeGenerator.generateSUBCode();
+                    codeGenerator.generateBGEQZCode(3);
+                    r = codeGenerator.generateLDCode(new Expression(new Type(
+                            "boolean"), "#1"));
+                    codeGenerator.generateBRCode(2);
+                    codeGenerator.generateLDCode(r, new Expression(new Type(
+                            "boolean"), "#0"));
+                    break;
+                default:
+                    throw new InvalidOperationException("Operation doesn't exist");
+            }
+        }
+    }
+
+    public void generateBaseOpCode(String op, Expression e1, Expression e2) throws InvalidOperationException {
+        System.out.println("CHAAAAMMMOOOU " + op);
+        Operation operator = getOperator(op);
+        switch (operator) {
+            case MINUS:
+                codeGenerator.generateSUBCode();
+                break;
+            case MULT:
+                codeGenerator.generateMULCode();
+                break;
+            case PLUS:
+                codeGenerator.generateADDCode();
+                break;
+            case DIV:
+                codeGenerator.generateDIVCode();
+                break;
+            default:
+                break;
+        }
+
+    }
+
+    private Operation getOperator(String op) throws InvalidOperationException {
+        switch (op) {
+            case "+":
+                return Operation.PLUS;
+            case "-":
+                return Operation.MINUS;
+            case "*":
+                return Operation.MULT;
+            case "/":
+                return Operation.DIV;
+            case "<":
+                return Operation.LT;
+            case ">":
+                return Operation.GT;
+            case "<=":
+                return Operation.LTEQ;
+            case ">=":
+                return Operation.GTEQ;
+            case "==":
+                return Operation.EQEQ;
+            case "!=":
+                return Operation.NOTEQ;
+            default:
+                throw new InvalidOperationException("Operator " + op + " nao encontrado.");
+        }
+    }
+
 
 }
 

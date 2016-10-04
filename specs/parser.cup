@@ -139,7 +139,7 @@ implements_loop ::=
 class_declaration ::=
     modifier_loop CLASS IDENTIFIER:id                                   {:Type t = new Type(id); SemanticImpl.getInstance().addType(t);:}
     extends_declaration_opt:superclass                                  {:SemanticImpl.getInstance().addSupertype((String) id, (String) superclass);:}
-    implements_declaration_opt LBRACE field_declaration_loop RBRACE     {:Logger.print("Line 128");:}
+    implements_declaration_opt LBRACE field_declaration_loop RBRACE     {:Logger.print("Line 128"); SemanticImpl.getInstance().getCodeGenerator().generateFinalAssemblyCode();:}
 ;
 
 field_declaration ::=
@@ -157,6 +157,7 @@ method_declaration ::=
     end_option:ep                                                       {:Logger.print("Line 136b "+ ep);
                                                                           if(ep instanceof Expression) SemanticImpl.getInstance().exitCurrentScope((Expression) ep);
                                                                           else  SemanticImpl.getInstance().exitCurrentScope();
+                                                                          SemanticImpl.getInstance().getCodeGenerator().addFunctionAddress(id);
                                                                           :}
 ;
 
@@ -207,6 +208,7 @@ variable_declarator_loop ::=
 variable_declarator ::=
     IDENTIFIER:id brack_loop attr_opt:exp                               {:Logger.print("Line 161");
                                                                         Variable temp = new Variable((String) id,new Type("null"), (Expression) exp);
+                                                                        SemanticImpl.getInstance().getCodeGenerator().assignmentDeclaration((Variable) temp, (Expression) exp);
                                                                         Logger.print("Temp type "+ temp);
                                                                         RESULT = temp;:}
 ;
@@ -352,7 +354,7 @@ expression ::=
     | bit_expression:be                                                 {: Logger.print("Line 260 ");RESULT = be;:}
     | casting_expression:ce                                             {: Logger.print("Line 261 "+ ce);RESULT = ce;:}
     | creating_expression:cre                                           {: Logger.print("Line 262 ");RESULT = cre;:}
-    | literal_expression:le                                             {:Logger.print("Line 263, le = " + ((Expression)le).getValue()); RESULT = le;:}
+    | literal_expression:le                                             {:Logger.print("Line 263, le = " + ((Expression)le).getValue()); SemanticImpl.getInstance().getCodeGenerator().generateLDCode((Expression) le); RESULT = le;:}
     | attribution:attr                                                  {: Logger.print(" Line 269 ");RESULT = attr;:}
     | call_method:cm                                                    {:Logger.print("Line 351 "+ cm);RESULT = cm;:}
     | SUPER:sup                                                         {:Logger.print("Line 266 ");RESULT = sup;:}
@@ -374,10 +376,12 @@ attribution ::= IDENTIFIER:id EQ expression:e                           {: Logge
                                                                         if(e instanceof String){
                                                                             SemanticImpl.getInstance().checkVariableAttribution(id, (String) e);
                                                                             Variable var = SemanticImpl.getInstance().findVariableByIdentifier((String) id);
+                                                                            SemanticImpl.getInstance().getCodeGenerator().assignmentDeclaration((Variable)var,(String)e);
                                                                         }else{
                                                                             SemanticImpl.getInstance().checkVariableAttribution(id, (Expression) e);
                                                                             Variable var = SemanticImpl.getInstance().findVariableByIdentifier((String) id);
                                                                             var.setValue((Expression) e);
+                                                                            SemanticImpl.getInstance().getCodeGenerator().assignmentDeclaration((Variable)var,(Expression)e);
                                                                             RESULT = e;
                                                                         }
 

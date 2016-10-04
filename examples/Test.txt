@@ -2,12 +2,13 @@ package examples;
 
 public class ExemploTeste{
 
-    private boolean method(int b){
-        return true;
+    private int method(){
+        return 10;
     }
 
-    public void re(int a){
-        int x = 2;
+    public int a1(){
+        int x = 12;
+        int r = 10 - 4;
+        return r;
     }
-
 }

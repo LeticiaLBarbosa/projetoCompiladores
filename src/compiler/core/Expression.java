@@ -15,6 +15,9 @@ public class Expression {
 		this.value = value;
 		this.context = "";
 	}
+	public Expression(String name) {
+		type = new Type("UNKNOWN");
+	}
 	
 	public Type getType() {
 		return type;
@@ -49,5 +52,8 @@ public class Expression {
 
 	public String toString(){
 		return "Expression of type; " + getType();
+	}
+	public String getAssemblyValue() {
+		return this.value;
 	}
 }
