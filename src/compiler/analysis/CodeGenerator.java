@@ -218,7 +218,7 @@ public class CodeGenerator {
             register++;
             labels += 8;
             r = allocateRegister();
-            addCode(labels + ": LD " + r + ", #" + expression.getValue());
+            addCode(labels + ": LD " + r + ", #" + expression.getAssemblyValue());
         }
         return r;
     }
