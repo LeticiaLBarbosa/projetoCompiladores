@@ -18,14 +18,15 @@ public class SemanticImpl{
     private Stack<ScopedEntity> scopeStack = new Stack<ScopedEntity>();
     Program jProgram = new Program();
     private static Map<String, List<String>> tiposCompativeis = new HashMap<String, List<String>>();
-    private int forCounter = 0;
+
+    public int forCounter = 0;
     public static boolean contextFor;
     private static SemanticImpl singleton;
 
     public static CodeGenerator getCodeGenerator() {
         return codeGenerator;
     }
-    private Integer condLabel;
+    private Stack<Integer> condLabel = new Stack<Integer>();
     static CodeGenerator codeGenerator;
     private static String currentOperator;
     private Program javaProgram;
@@ -112,16 +113,13 @@ public class SemanticImpl{
                     codeGenerator.generateSTCode(findVariableByIdentifier(parts[0]));
                     break;
                 default:
-                    codeGenerator.generateLDCode(findVariableByIdentifier(parts[0]));
-                    codeGenerator.generateLDCode(new Expression(new Type("int"), parts[2]));
-                    getExpression(new Expression(new Type("int"), parts[0]),Operation.valueOf(parts[1]), new Expression(new Type("int"), parts[2]));
-
                     break;
 
             }
         }
-        codeGenerator.generateBRCode(condLabel);
-        String x = codeGenerator.getAssemblyCode().replace("forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP", ""+(codeGenerator.getLabels()+8));
+        codeGenerator.generateBRCode(condLabel.pop());
+        String x = codeGenerator.getAssemblyCode().replace("forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP"+forCounter, ""+(codeGenerator.getLabels()+8));
+        forCounter--;
         codeGenerator.setAssemblyCode(x);
         ScopedEntity scoped = scopeStack.pop();
     }
@@ -443,7 +441,7 @@ public class SemanticImpl{
                     if(!contextFor) {
                         codeGenerator.generateSUBCode();
                         if (le.getContext() == "for") {
-                            codeGenerator.generateForCondition("BGEQZ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP");
+                            codeGenerator.generateForCondition("BGEQZ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP"+forCounter);
                         }
                         codeGenerator.generateBGEQZCode(3);
                         r = codeGenerator.generateLDCode(new Expression(new Type(
@@ -612,7 +610,7 @@ public class SemanticImpl{
 
     /* FOR */
     public void createForScope(Variable var, Expression bexp, Expression aexp) throws InvalidTypeException, InvalidOperationException {
-        For f = new For("For" + forCounter++);
+        For f = new For("For");
         for(Variable v: getCurrentScope().getVariable().values()){
             f.addVariable(v);
         }
@@ -631,32 +629,31 @@ public class SemanticImpl{
             String[] parts = bexp.getValue().split(" ");
 
             codeGenerator.generateLDCode(findVariableByIdentifier(parts[0]));
-            condLabel = codeGenerator.getLabels();
-            System.out.println(condLabel  + "Cond");
+            condLabel.push(codeGenerator.getLabels());
             codeGenerator.generateLDCode(new Expression(new Type("int") ,parts[2]));
             switch(Operation.valueOf(parts[1])){
                 case GT:
                     codeGenerator.generateSUBCode();
-                    codeGenerator.generateForCondition("BLEQZ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP");
+                    codeGenerator.generateForCondition("BLEQZ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP"+forCounter);
                     break;
                 case LTEQ:
                     codeGenerator.generateSUBCode();
-                    codeGenerator.generateForCondition("BGTZ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP");
+                    codeGenerator.generateForCondition("BGTZ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP"+forCounter);
                     break;
                 case LT:
                     codeGenerator.generateSUBCode();
-                    codeGenerator.generateForCondition("BGEQZ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP");
+                    codeGenerator.generateForCondition("BGEQZ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP"+forCounter);
                     break;
                 case GTEQ:
                     codeGenerator.generateSUBCode();
-                    codeGenerator.generateForCondition("BLTZ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP");
+                    codeGenerator.generateForCondition("BLTZ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP"+forCounter);
                     break;
                 case EQEQ:
-                    codeGenerator.generateForCondition("BNEQ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP");
+                    codeGenerator.generateForCondition("BNEQ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP"+forCounter);
                     break;
                 case NOTEQ:
                     codeGenerator.generateSUBCode();
-                    codeGenerator.generateForCondition("BEQ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP");
+                    codeGenerator.generateForCondition("BEQ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP"+forCounter);
                     break;
             }
 

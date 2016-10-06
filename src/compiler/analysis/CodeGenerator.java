@@ -137,13 +137,10 @@ public class CodeGenerator {
     }
 
 
-    public void generateBEQZCode(int br) {
+    public void generateBREAKcode() {
         labels += 8;
-
-        int jump = (br * 8) + labels;
-
-        Register current = allocateRegister();
-        addCode(labels + ": BEQZ " + current + ", " + jump);
+        System.out.println(labels + ": BR " +"forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP"+SemanticImpl.getInstance().forCounter);
+        addCode(labels + ": BR " +"forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP"+SemanticImpl.getInstance().forCounter);
     }
 
     public void generateBEQCode(int br) {

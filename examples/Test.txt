@@ -3,9 +3,12 @@ package examples;
 public class ExemploTeste{
 
     public void b(){
-        for(int i = 0; true; i++){
-            int a = i * 31;
+        for(int i = 0; i < 10; i++){
+            for(int j = i; j < 10; j++){
+                break;
+            }
         }
+        break;
     }
 
     public void main(int a, float c){

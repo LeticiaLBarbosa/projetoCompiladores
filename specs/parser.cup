@@ -314,7 +314,12 @@ statement ::=
     | RETURN SEMICOLON                                                  {: Logger.print("Line return");:}
     | THROW expression SEMICOLON                                        {: Logger.print("Line 229");:}
     | COLON statement                                                   {: Logger.print("Line 230");:}
-    | BREAK identifier_opt SEMICOLON                                    {: Logger.print("Line 231");:}
+    | BREAK identifier_opt SEMICOLON                                    {: Logger.print("Line 231 " + SemanticImpl.getInstance().contextFor);
+
+                                                                         if(SemanticImpl.getInstance().forCounter > 0){
+                                                                            SemanticImpl.getInstance().getCodeGenerator().generateBREAKcode();
+                                                                         }
+                                                                                :}
     | CONTINUE identifier_opt SEMICOLON                                 {: Logger.print("Line 232");:}
     | SEMICOLON                                                         {: Logger.print("Line 233");:}
 ;
@@ -403,7 +408,7 @@ for_statement ::=
 	| for_header:d1 expression_opt:bopt SEMICOLON	expression_opt:aopt RPAREN {:SemanticImpl.getInstance().createForScope((Variable)d1,(Expression)bopt,(Expression)aopt);:}statement_block {: Logger.print("Line 372");SemanticImpl.getInstance().exitForCurrentScope((Expression) aopt);:}
 ;
 
-for_header ::= FOR LPAREN for_div_1:d1 {:SemanticImpl.getInstance().contextFor = true;  RESULT = d1;:}
+for_header ::= FOR LPAREN for_div_1:d1 {:SemanticImpl.getInstance().contextFor = true;  SemanticImpl.getInstance().forCounter++; RESULT = d1;:}
  ;
 middle_operator ::=
 	PLUS                                                                {: Logger.print("Line 282");

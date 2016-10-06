@@ -3,22 +3,37 @@
 
 200: LD R1, #0
 208: ST i, R1
-216: LD R1, i
-224: LD R2, #10
-232: SUB R3, R1, R2
-240: BGEQZ R3, 288
-248: LD R4, i
-256: LD R5, #31
-264: MUL R6, R4, R5
-272: ST a, R6
-280: BR 216
-288: BR *0(SP)
+216: LD R1, #0
+224: ST i, R1
+232: LD R1, i
+240: LD R2, #10
+248: SUB R3, R1, R2
+256: BGEQZ R3, 400
+264: LD R4, i
+272: ST j, R4
+280: LD R1, #0
+288: ST j, R1
+296: LD R1, j
+304: LD R2, #10
+312: SUB R3, R1, R2
+320: BGEQZ R3, 368
+328: BR 368
+336: LD R4, j
+344: ADD R5, R4, #1
+352: ST j, R5
+360: BR 296
+368: LD R1, i
+376: ADD R2, R1, #1
+384: ST i, R2
+392: BR 232
+400: halt
+408: BR *0(SP)
 
 
-300: LD R1, #10
-308: ST a, R1
-316: ADD SP, SP, #mainsize
-324: ST 0(SP), #340
-332: BR 200
-340: SUB SP, SP, #mainsize
-348: halt
+500: LD R1, #10
+508: ST a, R1
+516: ADD SP, SP, #mainsize
+524: ST 0(SP), #540
+532: BR 200
+540: SUB SP, SP, #mainsize
+548: halt
