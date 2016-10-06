@@ -213,7 +213,7 @@ public class CodeGenerator {
         Register r = null;
         System.out.println(expression.getAssemblyValue()+ "DEIDEJOIJEA");
         System.out.println(expression.getAssemblyValue());
-        if (expression.getAssemblyValue() != null) {
+        if ((expression.getAssemblyValue() != null) && (expression.getValue() != null)) {
 			System.out.println("Register before ld: "+register);
             register++;
             labels += 8;
@@ -237,7 +237,7 @@ public class CodeGenerator {
     }
 
     public Register generateLDCode(Register r, Expression expression) {
-        if (expression.getAssemblyValue() != null) {
+        if ((expression.getAssemblyValue() != null) && (expression.getValue() != null)) {
             labels += 8;
             addCode(labels + ": LD " + r + ", #" + expression.getAssemblyValue());
         }
@@ -253,13 +253,13 @@ public class CodeGenerator {
 
     public void generateSTCode(Register one, Expression exp) {
         labels += 8;
-        addCode(labels + ": ST " + one + ", " + exp.getValue());
+        addCode(labels + ": ST " + one + ", " + exp.getAssemblyValue());
         this.register = -1;
     }
 
     public void generateSTCode(Expression exp) {
         labels += 8;
-        addCode(labels + ": ST " + exp.getValue() + ", " + allocateRegister());
+        addCode(labels + ": ST " + exp.getAssemblyValue() + ", " + allocateRegister());
         this.register = -1;
     }
 
