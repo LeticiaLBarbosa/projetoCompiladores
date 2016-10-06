@@ -55,7 +55,7 @@ public class CodeGenerator {
 
     public void generateADDCode() {
         labels += 8;
-
+        System.out.println("@!#!@#@!");
         Register one = registers[register - 1];
         Register two = allocateRegister();
 
@@ -321,21 +321,32 @@ public class CodeGenerator {
     }
 
     public void generateCodeFunctionCall(String name){
-        String[] parts = name.split(" ");
 
         Integer addressfuction = functionAddress.get(name);
 
         String assa = SemanticImpl.getInstance().getCurrentScope().getName();
         generateADDCode(Register.SP, Register.SP, "#"+assa+"size");
         generateSTCode(Register.SP0, new Expression(new Type("int"), "#"+(labels+24)));
-        System.out.println("soasjdoiasdioasjda "+functionAddress.containsKey(name));
-        System.out.println("soasjdoiasdioasjda "+functionAddress.toString());
         generateBRCode(addressfuction);
         generateSUBCode(Register.SP, Register.SP, "#"+assa+"size");
     }
 
     public void generateCodeFunctionCall(String name, ArrayList<Expression> args){
-        String[] parts = name.split(" ");
+        String key = name + " ";
+        for (Expression e: args
+             ) {
+            key += e.getType().getName();
+        }
+        Integer addressfuction = functionAddress.get(key);
+
+        String assa = SemanticImpl.getInstance().getCurrentScope().getName();
+        generateADDCode(Register.SP, Register.SP, "#"+assa+"size");
+        generateSTCode(Register.SP0, new Expression(new Type("int"), "#"+(labels+24)));
+        System.out.println("soasjdoiasdioasjda "+functionAddress.containsKey(key));
+        System.out.println("soasjdoiasdioasjda "+functionAddress.toString());
+
+        generateBRCode(addressfuction);
+        generateSUBCode(Register.SP, Register.SP, "#"+assa+"size");
     }
 
     public void StorageReturnedType(Function function, Expression returnedExpression) {

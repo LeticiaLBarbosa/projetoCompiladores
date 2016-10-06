@@ -397,13 +397,13 @@ numeric_option ::= PLUSPLUS:op                                          {: Logge
 ;
 
 for_statement ::=
-	  for_header LPAREN for_div_1:d1 SEMICOLON expression_opt:aopt RPAREN {:SemanticImpl.getInstance().createForScope((Variable)d1,null,(Expression)aopt);:} statement_block  {: Logger.print("Line 369");SemanticImpl.getInstance().exitForCurrentScope((Expression) aopt);:}
-	| for_header LPAREN for_div_1:d1 expression_opt:bopt	SEMICOLON RPAREN {:SemanticImpl.getInstance().createForScope((Variable)d1,(Expression)bopt,null);:} statement_block  {: Logger.print("Line 370");SemanticImpl.getInstance().exitForCurrentScope(null);:}
-	| for_header LPAREN for_div_1:d1 SEMICOLON RPAREN {:SemanticImpl.getInstance().createForScope((Variable)d1,null,null);:}statement_block                  {: Logger.print("Line 371");SemanticImpl.getInstance().exitForCurrentScope(null);:}
-	| for_header LPAREN for_div_1:vd expression_opt:bopt SEMICOLON	expression_opt:aopt RPAREN {:SemanticImpl.getInstance().createForScope((Variable)vd,(Expression)bopt,(Expression)aopt);:}statement_block {: Logger.print("Line 372");SemanticImpl.getInstance().exitForCurrentScope((Expression) aopt);:}
+	  for_header:d1  SEMICOLON expression_opt:aopt RPAREN {:SemanticImpl.getInstance().createForScope((Variable)d1,null,(Expression)aopt);:} statement_block  {: Logger.print("Line 369");SemanticImpl.getInstance().exitForCurrentScope((Expression) aopt);:}
+	| for_header:d1 expression_opt:bopt	SEMICOLON RPAREN {:SemanticImpl.getInstance().createForScope((Variable)d1,(Expression)bopt,null);:} statement_block  {: Logger.print("Line 370");SemanticImpl.getInstance().exitForCurrentScope(null);:}
+	| for_header:d1 SEMICOLON RPAREN {:SemanticImpl.getInstance().createForScope((Variable)d1,null,null);:}statement_block                  {: Logger.print("Line 371");SemanticImpl.getInstance().exitForCurrentScope(null);:}
+	| for_header:d1 expression_opt:bopt SEMICOLON	expression_opt:aopt RPAREN {:SemanticImpl.getInstance().createForScope((Variable)d1,(Expression)bopt,(Expression)aopt);:}statement_block {: Logger.print("Line 372");SemanticImpl.getInstance().exitForCurrentScope((Expression) aopt);:}
 ;
 
-for_header ::= FOR {:SemanticImpl.getInstance().contextFor = true;:}
+for_header ::= FOR LPAREN for_div_1:d1 {:SemanticImpl.getInstance().contextFor = true;  RESULT = d1;:}
  ;
 middle_operator ::=
 	PLUS                                                                {: Logger.print("Line 282");

@@ -95,7 +95,7 @@ public class SemanticImpl{
         scopeStack.push(scope);
     }
 
-    public void exitForCurrentScope(Expression aexp) throws InvalidFunctionException {
+    public void exitForCurrentScope(Expression aexp) throws InvalidFunctionException, InvalidOperationException, InvalidTypeException {
         System.out.println("#################");
         System.out.println(aexp.getValue());
         if(aexp != null){
@@ -105,6 +105,19 @@ public class SemanticImpl{
                     codeGenerator.generateLDCode(findVariableByIdentifier(parts[0]));
                     codeGenerator.generateSUBCode("1");
                     codeGenerator.generateSTCode(findVariableByIdentifier(parts[0]));
+                    break;
+                case PLUSPLUS:
+                    codeGenerator.generateLDCode(findVariableByIdentifier(parts[0]));
+                    codeGenerator.generateADDCode("1");
+                    codeGenerator.generateSTCode(findVariableByIdentifier(parts[0]));
+                    break;
+                default:
+                    codeGenerator.generateLDCode(findVariableByIdentifier(parts[0]));
+                    codeGenerator.generateLDCode(new Expression(new Type("int"), parts[2]));
+                    getExpression(new Expression(new Type("int"), parts[0]),Operation.valueOf(parts[1]), new Expression(new Type("int"), parts[2]));
+
+                    break;
+
             }
         }
         codeGenerator.generateBRCode(condLabel);
@@ -493,7 +506,7 @@ public class SemanticImpl{
                     return new Expression(getMajorType(le.getType(), re.getType()));
                 case PLUS:
                     if(!contextFor) codeGenerator.generateADDCode();
-                    return new Expression(getMajorType(le.getType(), re.getType()));
+                    return new Expression(getMajorType(le.getType(), re.getType()), le.getValue()+" "+md+" "+re.getValue());
                 case DIV:
                     if(!contextFor) codeGenerator.generateDIVCode();
                     return new Expression(getMajorType(le.getType(), re.getType()));
@@ -646,6 +659,8 @@ public class SemanticImpl{
                     codeGenerator.generateForCondition("BEQ", "forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP");
                     break;
             }
+
+
             contextFor = false;
         }
 
