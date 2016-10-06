@@ -585,7 +585,7 @@ literal_expression ::=
                                                                         Logger.print("Line 391, valor do C: "+c);:}
     | STRING_LITERAL:s                                                  {:RESULT = new Expression(new Type("string"), s.toString());
                                                                         Logger.print("Line 392, valor do S: "+s);:}
-    | NULL_LITERAL:n                                                    {:RESULT = new Expression(new Type("null"), (String) n);
+    | NULL_LITERAL:n                                                    {:RESULT = new Expression(new Type("null"), "NULL");
                                                                         Logger.print("Line 393, valor do N: ");:}
 ;
 

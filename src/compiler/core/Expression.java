@@ -53,7 +53,15 @@ public class Expression {
 	public String toString(){
 		return "Expression of type; " + getType();
 	}
+
 	public String getAssemblyValue() {
+        if(this.value != null){
+            if(this.value.equals("true")){
+                return "1";
+            }else if(this.value.equals("false")){
+                return "0";
+            }
+        }
 		return this.value;
 	}
 }
