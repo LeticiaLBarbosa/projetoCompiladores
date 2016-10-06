@@ -21,7 +21,6 @@ public class CodeGenerator {
     private Register[] registers;
     private Map<String, Integer> functionAddres;
 
-
     public CodeGenerator() {
         this.labels = 100;
         this.register = -1;
@@ -35,12 +34,13 @@ public class CodeGenerator {
         return null;
     }
     private String initAssemblyCode() {
-        return "100: LD SP, 4000\n";
+        return "100: LD SP, #4000\n";
     }
 
     public void assignmentDeclaration(Variable var, Object obj) {
-        if (obj instanceof String) {
-            System.out.println("chegou no assignmenaisjdsjdt");
+        if (obj instanceof Expression) {
+            System.out.println("chegou no assignment");
+            System.out.println(((Expression)obj).getValue());
             //generateLDCode((Expression) obj);
             generateSTCode(var);
         }
@@ -61,6 +61,13 @@ public class CodeGenerator {
         register++;
         Register result = allocateRegister();
         addCode(labels + ": ADD " + result + ", " + one + ", " + two);
+    }
+    public void generateADDCode(String cons) {
+        labels += 8;
+        Register one = registers[register];
+        register++;
+        Register result = allocateRegister();
+        addCode(labels + ": ADD " + result + ", " + one + ", #" + cons);
     }
 
     public void generateADDCode(Register result, Register one, Register two) {
@@ -86,6 +93,14 @@ public class CodeGenerator {
     public void generateSUBCode(Register result, Register one, Expression exp) {
         labels += 8;
         addCode(labels + ": SUB " + result + ", " + one + ", #" + exp.getAssemblyValue());
+    }
+
+    public void generateSUBCode(String cons) {
+        labels += 8;
+        Register one = registers[register];
+        register++;
+        Register result = allocateRegister();
+        addCode(labels + ": SUB " + result + ", " + one + ", #" + cons);
     }
 
     public void generateSUBCode(Register result, Register one, Register two) {
@@ -120,20 +135,24 @@ public class CodeGenerator {
         addCode(labels + ": MUL " + result + ", " + one + ", #" + exp.getValue());
     }
 
-    public void generateNOTCode() {
-        generateBEQZCode(4);
-        generateMULCode(Register.R2, Register.R1, new Expression(new Type("int"), "-1"));
-        generateADDCode(Register.R1, Register.R1, Register.R2);
-        generateBRCode(2);
-        generateADDCode(Register.R1, Register.R1, new Expression(new Type("int"), "1"));
-    }
 
     public void generateBEQZCode(int br) {
         labels += 8;
+
         int jump = (br * 8) + labels;
 
         Register current = allocateRegister();
         addCode(labels + ": BEQZ " + current + ", " + jump);
+    }
+
+    public void generateBEQCode(int br) {
+        labels += 8;
+        Register r1 = registers[register-1];
+        Register r2 = allocateRegister();
+
+        int jump = (br * 8) + labels;
+
+        addCode(labels + ": BEQ " + r1 + ", " + r2 + ", " + jump);
     }
 
     public void generateBNEQZCode(int br) {
@@ -142,6 +161,12 @@ public class CodeGenerator {
 
         Register current = allocateRegister();
         addCode(labels + ": BNEQZ " + current + ", " + jump);
+    }
+
+    public void generateForCondition(String op, String jump){
+        labels += 8;
+        Register current = allocateRegister();
+        addCode(labels + ": " +op + " " + current + ", " + jump);
     }
 
     public void generateBGEQZCode(int br) {
@@ -192,7 +217,20 @@ public class CodeGenerator {
             register++;
             labels += 8;
             r = allocateRegister();
-            addCode(labels + ": LD " + r + ", " + expression.getAssemblyValue());
+            addCode(labels + ": LD " + r + ", #" + expression.getValue());
+        }
+        return r;
+    }
+    public Register generateLDCode(Variable var) {
+        System.out.println("chamouVAR" + var.getValue());
+
+        Register r = null;
+        if (var.getIdentifier() != null) {
+            System.out.println("Register before ld: "+register);
+            register++;
+            labels += 8;
+            r = allocateRegister();
+            addCode(labels + ": LD " + r + ", " + var.getIdentifier());
         }
         return r;
     }
@@ -200,26 +238,27 @@ public class CodeGenerator {
     public Register generateLDCode(Register r, Expression expression) {
         if (expression.getAssemblyValue() != null) {
             labels += 8;
-            addCode(labels + ": LD " + r + ", " + expression.getAssemblyValue());
+            addCode(labels + ": LD " + r + ", #" + expression.getAssemblyValue());
         }
         return r;
     }
 
     public void generateSTCode(Variable variable) {
         labels += 8;
+        System.out.println(variable.getIdentifier());
         addCode(labels + ": ST " + variable.getIdentifier() + ", " + allocateRegister());
         this.register = -1;
     }
 
     public void generateSTCode(Register one, Expression exp) {
         labels += 8;
-        addCode(labels + ": ST " + one + ", " + exp.getAssemblyValue());
+        addCode(labels + ": ST " + one + ", " + exp.getValue());
         this.register = -1;
     }
 
     public void generateSTCode(Expression exp) {
         labels += 8;
-        addCode(labels + ": ST " + exp.getAssemblyValue() + ", " + allocateRegister());
+        addCode(labels + ": ST " + exp.getValue() + ", " + allocateRegister());
         this.register = -1;
     }
 
@@ -257,6 +296,11 @@ public class CodeGenerator {
     public String getAssemblyCode() {
         return assemblyCode;
     }
+
+    public void setAssemblyCode(String assemblyCode) {
+        this.assemblyCode = assemblyCode;
+    }
+
 
     public void addFunctionAddress(String name) {
         labels += 300;

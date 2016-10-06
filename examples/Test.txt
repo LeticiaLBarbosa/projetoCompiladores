@@ -1,14 +1,14 @@
 package examples;
 
 public class ExemploTeste{
+    public void a1(){
 
-    private int method(){
-        return 10;
-    }
+        for(int i = 10; i ==0;i--){
+            int b = 10;
+            int c = 312312;
+            int a = b + c;
+        }
+        int a = 1;
 
-    public int a1(){
-        int x = 12;
-        int r = 10 - 4;
-        return r;
     }
 }
