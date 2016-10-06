@@ -6,6 +6,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,14 +20,14 @@ public class CodeGenerator {
     private int register;
     private String assemblyCode;
     private Register[] registers;
-    private Map<String, Integer> functionAddres;
+    private Map<String, Integer> functionAddress;
 
     public CodeGenerator() {
         this.labels = 100;
         this.register = -1;
         this.registers = Register.values();
         this.assemblyCode = initAssemblyCode();
-        this.functionAddres = new HashMap<String, Integer>();
+        this.functionAddress = new HashMap<String, Integer>();
     }
 
     public static Object getInstance() {
@@ -70,9 +71,9 @@ public class CodeGenerator {
         addCode(labels + ": ADD " + result + ", " + one + ", #" + cons);
     }
 
-    public void generateADDCode(Register result, Register one, Register two) {
+    public void generateADDCode(Register result, Register one, String cons) {
         labels += 8;
-        addCode(labels + ": ADD " + result + ", " + one + ", " + two);
+        addCode(labels + ": ADD " + result + ", " + one + ", " + cons);
     }
 
     public void generateADDCode(Register result, Register one, Expression exp) {
@@ -103,9 +104,9 @@ public class CodeGenerator {
         addCode(labels + ": SUB " + result + ", " + one + ", #" + cons);
     }
 
-    public void generateSUBCode(Register result, Register one, Register two) {
+    public void generateSUBCode(Register result, Register one, String cons) {
         labels += 8;
-        addCode(labels + ": SUB " + result + ", " + one + ", " + two);
+        addCode(labels + ": SUB " + result + ", " + one + ", " + cons);
     }
 
     public void generateMULCode() {
@@ -268,7 +269,7 @@ public class CodeGenerator {
 
     public void generateCallFunction(String functionName) {
         Expression blockSize = new Expression("size");
-        Integer addressFunction = functionAddres.get(functionName);
+        Integer addressFunction = functionAddress.get(functionName);
 
         generateADDCode(Register.SP, Register.SP, blockSize);
 
@@ -303,9 +304,38 @@ public class CodeGenerator {
 
 
     public void addFunctionAddress(String name) {
-        labels += 300;
-        functionAddres.put(name, labels + 8);
+        labels = (labels +100)/100 * 100 - 8;
+        System.out.println("Adicionou o " + name +" com valor de " + labels);
+        functionAddress.put(name.trim(), labels+8);
         addCode("\n");
+    }
+
+    public void addBRSP(String funcname) {
+        if(funcname.equals("main")){
+            generateHalt();
+        }else{
+            labels += 8;
+            addCode(labels+": BR *0(SP)");
+        }
+
+    }
+
+    public void generateCodeFunctionCall(String name){
+        String[] parts = name.split(" ");
+
+        Integer addressfuction = functionAddress.get(name);
+
+        String assa = SemanticImpl.getInstance().getCurrentScope().getName();
+        generateADDCode(Register.SP, Register.SP, "#"+assa+"size");
+        generateSTCode(Register.SP0, new Expression(new Type("int"), "#"+(labels+24)));
+        System.out.println("soasjdoiasdioasjda "+functionAddress.containsKey(name));
+        System.out.println("soasjdoiasdioasjda "+functionAddress.toString());
+        generateBRCode(addressfuction);
+        generateSUBCode(Register.SP, Register.SP, "#"+assa+"size");
+    }
+
+    public void generateCodeFunctionCall(String name, ArrayList<Expression> args){
+        String[] parts = name.split(" ");
     }
 
     public void StorageReturnedType(Function function, Expression returnedExpression) {

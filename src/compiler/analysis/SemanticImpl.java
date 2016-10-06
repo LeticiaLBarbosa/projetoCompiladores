@@ -135,9 +135,14 @@ public class SemanticImpl{
         return scopeStack.peek();
     }
 
-    public void addFunctionAndNewScope(Function f) {
+    public void addFunctionAndNewScope(Function f) throws Exception {
         functions.add(f);
         createNewScope(f);
+        if(f.getParams() != null) {
+            for (Parameter p : f.getParams()) {
+                addVariable((Variable) p);
+            }
+        }
     }
 
     public boolean checkVariableExistence(String variableName) {
@@ -298,9 +303,6 @@ public class SemanticImpl{
      * @throws Exception
      */
     private void addVariable(Variable variable) throws Exception{
-        if(validateVariableNameForFunction(variable.getIdentifier())){
-            throw new InvalidVariableException("Sorry this id is already used by a method");
-        }
         if(scopeStack.isEmpty()){
             validateVariableGlobal(variable);
             variables.put(variable.getIdentifier(),variable);
@@ -333,7 +335,7 @@ public class SemanticImpl{
         tempVariables = new ArrayList<Variable>();
     }
 
-    public void validateFunction(String functionName, ArrayList<Parameter> params, Type declaredType) throws InvalidFunctionException, InvalidParameterException{
+    public void validateFunction(String functionName, ArrayList<Parameter> params, Type declaredType) throws Exception {
         if(declaredType == null){
             throw new InvalidFunctionException("The function "+functionName +" is missing either a declared return type or a return statement in the end of it");
         }
@@ -341,15 +343,22 @@ public class SemanticImpl{
         temp.setDeclaredReturnedType(declaredType);
         if(checkFunctionExistence(temp)){
             if(params != null){
-                for(Parameter p : params){
-                    variables.put(p.getIdentifier(), (Variable) p);
-                }
                 checkExistingParameter(params);
             }
+            String keyFunc = functionName + " ";
+            if(params != null) {
+                for (Parameter p : params) {
+                    keyFunc += p.getType().getName();
+                }
+            }
+            System.out.println(keyFunc);
+            codeGenerator.addFunctionAddress(keyFunc);
             addFunctionAndNewScope(temp);
         }
 
     }
+
+
 
     private void hasReturn(Expression exp) throws InvalidFunctionException {
         if(!exp.getContext().equalsIgnoreCase("return")){

@@ -46,7 +46,9 @@ public class Function extends ScopedEntity{
 			throw new InvalidFunctionException("Function " + getName() + " was supposed to return " + declaredReturnType);
 	}
 	
-	
+	public void addParam(Parameter a){
+		params.add(a);
+	}
 	@Override
 	public boolean equals(Object obj){
 		if(!(obj instanceof Function)) return false;

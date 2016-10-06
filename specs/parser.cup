@@ -157,7 +157,7 @@ method_declaration ::=
     end_option:ep                                                       {:Logger.print("Line 136b "+ ep);
                                                                           if(ep instanceof Expression) SemanticImpl.getInstance().exitCurrentScope((Expression) ep);
                                                                           else  SemanticImpl.getInstance().exitCurrentScope();
-                                                                          SemanticImpl.getInstance().getCodeGenerator().addFunctionAddress(id);
+                                                                          SemanticImpl.getInstance().getCodeGenerator().addBRSP((String) id);
                                                                           :}
 ;
 
@@ -165,9 +165,11 @@ call_method ::=  IDENTIFIER:id LPAREN   {:Logger.print("Line 163");:}
                     arglist_opt:args RPAREN {: if(args != null){
                      Logger.print("Line 164");
                      SemanticImpl.getInstance().verifyCall((String)id,(ArrayList<Expression>) args); RESULT = id;
+                     SemanticImpl.getInstance().getCodeGenerator().generateCodeFunctionCall((String) id, (ArrayList<Expression>) args);
                      }else{
                      Logger.print("Line 164b");
                         SemanticImpl.getInstance().verifyCall((String)id,new ArrayList<Expression>()); RESULT= id;
+                        SemanticImpl.getInstance().getCodeGenerator().generateCodeFunctionCall((String) id);
                      }:}
 ;
 

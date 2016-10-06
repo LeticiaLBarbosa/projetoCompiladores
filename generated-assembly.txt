@@ -1,22 +1,24 @@
 100: LD SP, #4000
-108: LD R1, #10
-116: ST i, R1
-124: LD R1, i
-132: LD R2, #0
-140: BNEQ R2, 244
-148: LD R3, #10
-156: ST b, R3
-164: LD R1, #312312
-172: ST c, R1
-180: LD R1, b
-188: LD R2, c
-196: ADD R3, R1, R2
-204: ST a, R3
-212: LD R1, i
-220: SUB R2, R1, #1
-228: ST i, R2
-236: BR 124
-244: LD R1, #1
-252: ST a, R1
 
 
+200: LD R1, #0
+208: ST i, R1
+216: LD R1, i
+224: LD R2, #10
+232: SUB R3, R1, R2
+240: BGEQZ R3, 288
+248: LD R4, i
+256: LD R5, #31
+264: MUL R6, R4, R5
+272: ST a, R6
+280: BR 216
+288: BR *0(SP)
+
+
+300: LD R1, #10
+308: ST a, R1
+316: ADD SP, SP, #mainsize
+324: ST 0(SP), #340
+332: BR 200
+340: SUB SP, SP, #mainsize
+348: halt
