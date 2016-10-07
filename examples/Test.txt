@@ -37,7 +37,7 @@ public class ExemploTeste{
     public void integersOp() {
         int a = 10;
         int b = 20;
-        float c = a + b - a * b / a % b;
+        float c = (a + b) - a * (b / (a % b));
         int d = a >> 2;
         int e = b >>> 3;
         int f = e << 2;
@@ -47,9 +47,9 @@ public class ExemploTeste{
     }
 
     public void floats() {
-        float a = (float) 1.5;
-        float b = (float) 1.5986;
-        float c = (float) 0.5986;
+        float a = 1.5;
+        float b = 1.5986;
+        float c = 0.5986;
     }
 
     public void strings(){

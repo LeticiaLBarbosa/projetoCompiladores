@@ -247,12 +247,23 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
 	"0"{O}*{IS}?					{ return symbol(sym.I_CONSTANT , new String(yytext())); }
 	{CP}?"'"([^'\\\n]|{ES})+"'"		{ return symbol(sym.I_CONSTANT , new String(yytext())); }
 
+    "-"{NZ}{D}*{IS}?				{ return symbol(sym.I_CONSTANT , new String(yytext())); }
+    "-"{HP}{H}+{IS}?					{ return symbol(sym.I_CONSTANT , new String(yytext())); }
+
+
 	{D}+{E}{FS}?				{ return symbol(sym.F_CONSTANT , new String(yytext())); }
 	{D}*"."{D}+{E}?{FS}?		{ return symbol(sym.F_CONSTANT , new String(yytext())); }
 	{D}+"."{E}?{FS}?			{ return symbol(sym.F_CONSTANT , new String(yytext())); }
 	{HP}{H}+{P}{FS}?			{ return symbol(sym.F_CONSTANT , new String(yytext())); }
 	{HP}{H}*"."{H}+{P}{FS}?		{ return symbol(sym.F_CONSTANT , new String(yytext())); }
 	{HP}{H}+"."{P}{FS}?			{ return symbol(sym.F_CONSTANT , new String(yytext())); }
+
+	"-"{D}+{E}{FS}?				{ return symbol(sym.F_CONSTANT , new String(yytext())); }
+    "-"{D}*"."{D}+{E}?{FS}?		{ return symbol(sym.F_CONSTANT , new String(yytext())); }
+    "-"{D}+"."{E}?{FS}?			{ return symbol(sym.F_CONSTANT , new String(yytext())); }
+    "-"{HP}{H}+{P}{FS}?			{ return symbol(sym.F_CONSTANT , new String(yytext())); }
+    "-"{HP}{H}*"."{H}+{P}{FS}?		{ return symbol(sym.F_CONSTANT , new String(yytext())); }
+    "-"{HP}{H}+"."{P}{FS}?			{ return symbol(sym.F_CONSTANT , new String(yytext())); }
 
 }
 
