@@ -30,19 +30,12 @@ public class CodeGenerator {
         this.functionAddress = new HashMap<String, Integer>();
     }
 
-    public static Object getInstance() {
-        // TODO Auto-generated method stub
-        return null;
-    }
     private String initAssemblyCode() {
         return "100: LD SP, #4000\n";
     }
 
     public void assignmentDeclaration(Variable var, Object obj) {
         if (obj instanceof Expression) {
-            System.out.println("chegou no assignment");
-            System.out.println(((Expression)obj).getValue());
-            //generateLDCode((Expression) obj);
             generateSTCode(var);
         }
         if (obj instanceof Function) {
@@ -50,12 +43,10 @@ public class CodeGenerator {
             generateLDCode(new Expression(f.getName()));
             generateSTCode(var);
         }
-        System.out.println(assemblyCode);
     }
 
     public void generateADDCode() {
         labels += 8;
-        System.out.println("@!#!@#@!");
         Register one = registers[register - 1];
         Register two = allocateRegister();
 
@@ -63,6 +54,7 @@ public class CodeGenerator {
         Register result = allocateRegister();
         addCode(labels + ": ADD " + result + ", " + one + ", " + two);
     }
+
     public void generateADDCode(String cons) {
         labels += 8;
         Register one = registers[register];
@@ -136,10 +128,8 @@ public class CodeGenerator {
         addCode(labels + ": MUL " + result + ", " + one + ", #" + exp.getValue());
     }
 
-
     public void generateBREAKcode() {
         labels += 8;
-        System.out.println(labels + ": BR " +"forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP"+SemanticImpl.getInstance().forCounter);
         addCode(labels + ": BR " +"forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP"+SemanticImpl.getInstance().forCounter);
     }
 
@@ -206,12 +196,8 @@ public class CodeGenerator {
     }
 
     public Register generateLDCode(Expression expression) {
-        System.out.println("chamou");
         Register r = null;
-        System.out.println(expression.getAssemblyValue()+ "DEIDEJOIJEA");
-        System.out.println(expression.getAssemblyValue());
         if ((expression.getAssemblyValue() != null) && (expression.getValue() != null)) {
-			System.out.println("Register before ld: "+register);
             register++;
             labels += 8;
             r = allocateRegister();
@@ -219,12 +205,11 @@ public class CodeGenerator {
         }
         return r;
     }
+
     public Register generateLDCode(Variable var) {
-        System.out.println("chamouVAR" + var.getValue());
 
         Register r = null;
         if (var.getIdentifier() != null) {
-            System.out.println("Register before ld: "+register);
             register++;
             labels += 8;
             r = allocateRegister();
@@ -243,7 +228,6 @@ public class CodeGenerator {
 
     public void generateSTCode(Variable variable) {
         labels += 8;
-        System.out.println(variable.getIdentifier());
         addCode(labels + ": ST " + variable.getIdentifier() + ", " + allocateRegister());
         this.register = -1;
     }
@@ -299,10 +283,8 @@ public class CodeGenerator {
         this.assemblyCode = assemblyCode;
     }
 
-
     public void addFunctionAddress(String name) {
         labels = (labels +100)/100 * 100 - 8;
-        System.out.println("Adicionou o " + name +" com valor de " + labels);
         functionAddress.put(name.trim(), labels+8);
         addCode("\n");
     }
@@ -339,8 +321,6 @@ public class CodeGenerator {
         String assa = SemanticImpl.getInstance().getCurrentScope().getName();
         generateADDCode(Register.SP, Register.SP, "#"+assa+"size");
         generateSTCode(Register.SP0, new Expression(new Type("int"), "#"+(labels+24)));
-        System.out.println("soasjdoiasdioasjda "+functionAddress.containsKey(key));
-        System.out.println("soasjdoiasdioasjda "+functionAddress.toString());
 
         generateBRCode(addressfuction);
         generateSUBCode(Register.SP, Register.SP, "#"+assa+"size");
@@ -387,4 +367,13 @@ public class CodeGenerator {
         writer.close();
     }
 
+    public void generateMODCode() {
+        labels += 8;
+        Register one = registers[register - 1];
+        Register two = allocateRegister();
+
+        register++;
+        Register result = allocateRegister();
+        addCode(labels + ": MOD " + result + ", " + one + ", " + two);
+    }
 }

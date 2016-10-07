@@ -1,39 +1,207 @@
 100: LD SP, #4000
 
 
-200: LD R1, #0
-208: ST i, R1
-216: LD R1, #0
-224: ST i, R1
-232: LD R1, i
-240: LD R2, #10
-248: SUB R3, R1, R2
-256: BGEQZ R3, 400
-264: LD R4, i
-272: ST j, R4
-280: LD R1, #0
-288: ST j, R1
-296: LD R1, j
-304: LD R2, #10
-312: SUB R3, R1, R2
-320: BGEQZ R3, 368
-328: BR 368
-336: LD R4, j
-344: ADD R5, R4, #1
-352: ST j, R5
-360: BR 296
-368: LD R1, i
-376: ADD R2, R1, #1
-384: ST i, R2
-392: BR 232
-400: halt
-408: BR *0(SP)
+200: LD R1, #1
+208: ST a, R1
+216: BR *0(SP)
+
+
+300: LD R1, #1
+308: ST t, R1
+316: LD R1, #0
+324: ST f, R1
+332: LD R1, t
+340: LD R2, f
+348: ST a, R2
+356: LD R1, t
+364: LD R2, f
+372: ST b, R2
+380: BR *0(SP)
+
+
+400: LD R1, #NULL
+408: ST a, R1
+416: BR *0(SP)
 
 
 500: LD R1, #10
-508: ST a, R1
-516: ADD SP, SP, #mainsize
-524: ST 0(SP), #540
-532: BR 200
-540: SUB SP, SP, #mainsize
-548: halt
+508: LD R2, #12
+516: LD R3, #12
+524: MUL R4, R2, R3
+532: ADD R5, R3, R4
+540: ST a, R5
+548: LD R1, #20
+556: ST b, R1
+564: BR *0(SP)
+
+
+600: LD R1, #'A'
+608: ST a, R1
+616: LD R1, #'B'
+624: ST b, R1
+632: BR *0(SP)
+
+
+700: LD R1, #10
+708: ST a, R1
+716: LD R1, #20
+724: ST b, R1
+732: LD R1, a
+740: LD R2, b
+748: LD R3, a
+756: LD R4, b
+764: LD R5, a
+772: LD R6, b
+780: MOD R7, R5, R6
+788: DIV R8, R6, R7
+796: MUL R9, R7, R8
+804: SUB R10, R8, R9
+812: ADD R11, R9, R10
+820: ST c, R11
+828: LD R1, a
+836: LD R2, #2
+844: ST d, R2
+852: LD R1, b
+860: LD R2, #3
+868: ST e, R2
+876: LD R1, e
+884: LD R2, #2
+892: ST f, R2
+900: LD R1, a
+908: LD R2, #2
+916: ST j, R2
+924: LD R1, a
+932: ADD R2, R1, #1
+940: ST a, R2
+948: ST g, R1
+956: LD R1, b
+964: SUB R2, R1, #1
+972: ST b, R2
+980: ST p, R1
+988: BR *0(SP)
+
+
+1000: LD R1, #1.5
+1008: ST a, R1
+1016: LD R1, #1.5986
+1024: ST b, R1
+1032: LD R1, #0.5986
+1040: ST c, R1
+1048: BR *0(SP)
+
+
+1100: LD R1, #bla bla
+1108: ST palavra, R1
+1116: LD R1, #test
+1124: ST b, R1
+1132: LD R1, #AaDa
+1140: ST c, R1
+1148: LD R1, #Aa
+1156: ST d, R1
+1164: LD R1, #A12
+1172: ST e, R1
+1180: LD R1, #09
+1188: ST f, R1
+1196: LD R1, #Mauhsuwswijsiks wuhedywghdwujsoqwks dhywgdywqgsuqjsiqjs uwhsdywgduhsiqjsqs**
+1204: ST g, R1
+1212: LD R1, #!:_)(*&&*)oiiis
+1220: ST h, R1
+1228: BR *0(SP)
+
+
+1300: LD R1, a
+1308: LD R2, b
+1316: BEQ R1, R2, 1340
+1324: LD R3, #0
+1332: BR 1348
+1340: LD R3, #1
+1348: ST n, R3
+1356: LD R1, a
+1364: LD R2, c
+1372: ADD R3, R1, R2
+1380: LD R4, b
+1388: SUB R5, R3, R4
+1396: BLEQZ R5, 1420
+1404: LD R6, #1
+1412: BR 1428
+1420: LD R6, #0
+1428: ST n, R6
+1436: BR *0(SP)
+
+
+1500: LD R1, #1
+1508: LD R2, y
+1516: LD R3, #1
+1524: ADD R4, R2, R3
+1532: ST x, R4
+1540: BR *0(SP)
+
+
+1600: LD R1, #0
+1608: ST i, R1
+1616: LD R1, i
+1624: LD R2, #100
+1632: SUB R3, R1, R2
+1640: BGEQZ R3, 1680
+1648: LD R4, i
+1656: ADD R5, R4, #1
+1664: ST i, R5
+1672: BR 1616
+1680: LD R1, #0
+1688: ST j, R1
+1696: LD R1, #0
+1704: ST j, R1
+1712: LD R1, j
+1720: LD R2, #100
+1728: SUB R3, R1, R2
+1736: BGEQZ R3, 1752
+1744: BR 1712
+1752: LD R4, #0
+1760: ST k, R4
+1768: LD R1, #0
+1776: ST k, R1
+1784: LD R1, #0
+1792: ST i, R1
+1800: LD R1, i
+1808: LD R2, #12
+1816: SUB R3, R1, R2
+1824: BGEQZ R3, 1896
+1832: LD R4, #testando o for 
+1840: LD R5, i
+1848: ADD R6, R4, R5
+1856: ST s, R6
+1864: LD R1, i
+1872: ADD R2, R1, #1
+1880: ST i, R2
+1888: BR 1800
+1896: BR *0(SP)
+
+
+1900: LD R1, #ola
+1908: ST ola, R1
+1916: LD R1, ola
+1924: BR *0(SP)
+
+
+2000: ADD SP, SP, #testaRetornoEChamadaDeMetodosize
+2008: ST 0(SP), #2024
+2016: BR 1900
+2024: SUB SP, SP, #testaRetornoEChamadaDeMetodosize
+2032: LD R1, #10
+2040: ST retorno, R1
+2048: LD R1, retorno
+2056: BR *0(SP)
+
+
+2100: LD R2, #10
+2108: ST retorno, R2
+2116: LD R1, #10
+2124: LD R2, #0
+2132: SUB R3, R1, R2
+2140: BLTZ R3, 2164
+2148: LD R4, #1
+2156: BR 2172
+2164: LD R4, #0
+2172: ST a, R4
+2180: LD R1, a
+2188: BR *0(SP)
