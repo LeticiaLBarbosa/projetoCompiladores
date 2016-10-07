@@ -15,6 +15,7 @@ public class Expression {
 		this.value = value;
 		this.context = "";
 	}
+
 	public Expression(String name) {
 		type = new Type("UNKNOWN");
 	}

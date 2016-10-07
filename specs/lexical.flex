@@ -38,12 +38,35 @@ import compiler.core.*;
   }
 %}
 
-/* Identifiers */
-Identifier = [:jletter:][:jletterdigit:]*
+/*Macros*/
+
+O =  [0-7]
+D = [0-9]
+NZ = [1-9]
+L = [a-zA-Z_]
+A =  [a-zA-Z_0-9]
+H = [a-fA-F0-9]
+HP = (0[xX])
+E = [Ee][+-]?{D}+
+P =  ([Pp][+-]?{D}+)
+FS = (f|F|l|L)
+IS = (u|U|l|L)*
+CP = (u|U|L)
+SP = (u8|u|U|L)
+ES = (\\([\'\"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
+WS = [ \t\v\n\f]
 
 /* White spaces*/
 LineTerminator = \r|\n|\r\n
 WhiteSpace = {LineTerminator} | [ \t\f]
+
+/* Float literals */
+FloatLiteral  = ({Float1}|{Float2}|{Float3}) [fF]
+DoubleLiteral = ({Float1}|{Float2}|{Float3}) [dD]
+
+Float1    = [0-9]"."[0-9]*
+Float2    = "."[0-9]+
+Float3    = [0-9]+
 
 /* Integer literals */
 DecimalLiteral = 0 | [1-9][0-9]*
@@ -57,20 +80,15 @@ OctIntegerLiteral = 0+ [1-3]? {OctDigit} {1,15}
 OctLongLiteral    = 0+ 1? {OctDigit} {1,21} [lL]
 OctDigit          = [0-7]
 
-/* Float literals */
-FloatLiteral  = ({Float1}|{Float2}|{Float3}) {Exponent}? [fF]
-DoubleLiteral = ({Float1}|{Float2}|{Float3}) {Exponent}? [dD]
-
-Float1    = [0-9]+ \. [0-9]*
-Float2    = \. [0-9]+
-Float3    = [0-9]+
-Exponent = [eE] [+-]? [0-9]+
 
 /* Strings */
 Marker = [\"]
 Other_Symbols = \*|\+|\[|\]|\!|\£|\$|\%|\&|\=|\?|\^|\-|\°|\#|\@|\:|\(|\)
 Separators = \r|\n|\r\n\t\f
 Alphanumerics_ = [ a-zA-Z0-9_]
+
+/* Identifiers */
+Identifier = [:jletter:][:jletterdigit:]*
 
 temp = [ \*|\+|\[|\]|\!|\£|\$|\%|\&|\=|\?|\^|\-|\°|\#|\@|\:|\(|\)|\"|\r|\n|\r\n\t\f a-zA-Z0-9_]*
 
@@ -139,20 +157,20 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
     "true"                          { return symbol(sym.BOOLEAN_LITERAL, new Boolean(true)); }
     "false"                         { return symbol(sym.BOOLEAN_LITERAL, new Boolean(false)); }
 
+//    {FloatLiteral}                  { return symbol(sym.FLOATING_POINT_LITERAL, new Float(yytext().substring(0,yylength()))); }
+//    {DoubleLiteral}                 { return symbol(sym.FLOATING_POINT_LITERAL, new Double(yytext().substring(0,yylength()))); }
+//
+//    {DecimalLiteral}                { return symbol(sym.INTEGER_LITERAL, new Integer(yytext())); }
+//    {LongLiteral}                   { return symbol(sym.INTEGER_LITERAL, new Long(yytext().substring(0,yylength()-1))); }
+//
+//    {HexIntegerLiteral}             { return symbol(sym.INTEGER_LITERAL, new Integer((int) parseLong(2, yylength(), 16))); }
+//    {HexLongLiteral}                { return symbol(sym.INTEGER_LITERAL, new Long(parseLong(2, yylength()-1, 16))); }
+//
+//    {OctIntegerLiteral}             { return symbol(sym.INTEGER_LITERAL, new Integer((int) parseLong(0, yylength(), 8))); }
+//    {OctLongLiteral}                { return symbol(sym.INTEGER_LITERAL, new Long(parseLong(0, yylength()-1, 8))); }
+
     /* Identifier*/
     {Identifier} 					{ return symbol(sym.IDENTIFIER,yytext());}
-
-    {DecimalLiteral}                { return symbol(sym.INTEGER_LITERAL, new Integer(yytext())); }
-    {LongLiteral}                   { return symbol(sym.INTEGER_LITERAL, new Long(yytext().substring(0,yylength()-1))); }
-
-    {HexIntegerLiteral}             { return symbol(sym.INTEGER_LITERAL, new Integer((int) parseLong(2, yylength(), 16))); }
-    {HexLongLiteral}                { return symbol(sym.INTEGER_LITERAL, new Long(parseLong(2, yylength()-1, 16))); }
-
-    {OctIntegerLiteral}             { return symbol(sym.INTEGER_LITERAL, new Integer((int) parseLong(0, yylength(), 8))); }
-    {OctLongLiteral}                { return symbol(sym.INTEGER_LITERAL, new Long(parseLong(0, yylength()-1, 8))); }
-
-    {FloatLiteral}                  { return symbol(sym.FLOATING_POINT_LITERAL, new Float(yytext().substring(0,yylength()-1))); }
-    {DoubleLiteral}                 { return symbol(sym.FLOATING_POINT_LITERAL, new Double(yytext().substring(0,yylength()-1))); }
 
     /* Comments*/
     {Comment}                       { /* just ignore it */ }
@@ -221,6 +239,20 @@ Comment = "/**" ( [^*] | \*+ [^/*] )* "*"+ "/"
     ">>="							{return symbol(sym.RSHIFTEQ);}
     "<<="							{return symbol(sym.LSHIFTEQ);}
     "?"                             { return symbol(sym.QUESTION); }
+
+    '(.|\\(n|t|r))?'		{ return symbol(sym.C_CONSTANT , new String(yytext())); }
+
+	{HP}{H}+{IS}?					{ return symbol(sym.I_CONSTANT , new String(yytext())); }
+	{NZ}{D}*{IS}?					{ return symbol(sym.I_CONSTANT , new String(yytext())); }
+	"0"{O}*{IS}?					{ return symbol(sym.I_CONSTANT , new String(yytext())); }
+	{CP}?"'"([^'\\\n]|{ES})+"'"		{ return symbol(sym.I_CONSTANT , new String(yytext())); }
+
+	{D}+{E}{FS}?				{ return symbol(sym.F_CONSTANT , new String(yytext())); }
+	{D}*"."{D}+{E}?{FS}?		{ return symbol(sym.F_CONSTANT , new String(yytext())); }
+	{D}+"."{E}?{FS}?			{ return symbol(sym.F_CONSTANT , new String(yytext())); }
+	{HP}{H}+{P}{FS}?			{ return symbol(sym.F_CONSTANT , new String(yytext())); }
+	{HP}{H}*"."{H}+{P}{FS}?		{ return symbol(sym.F_CONSTANT , new String(yytext())); }
+	{HP}{H}+"."{P}{FS}?			{ return symbol(sym.F_CONSTANT , new String(yytext())); }
 
 }
 

@@ -1,17 +1,106 @@
 package examples;
 
 public class ExemploTeste{
+    public void begginTest(){
+		boolean a = true;
+	}
+
+	public void logicalOP() {
+        boolean t = true;
+        boolean f = false;
+        boolean a = t && f;
+        boolean b = t ^ f;
+
+    }
+
+    public void nullOp() {
+        String a = null;
+    }
+
+    public void integers() {
+        int a = 10+12*12;
+        int b = 20;
+    }
+
+    public void chars() {
+        char a = 'A';
+        char b = 'B';
+    }
+
+    /** Comment Test. Check that ignores */
+    /**
+     * Comment test with symbols 987,) _ ++ _ {} ^ ` and more than one line
+     */
+
+    public void integersOp() {
+        int a = 10;
+        int b = 20;
+        float c = a + b - a * b / a % b;
+        int d = a >> 2;
+        int e = b >>> 3;
+        int f = e << 2;
+        float j = a /= 2;
+        int g = a++;
+        int p = b--;
+    }
+
+    public void floats() {
+        float a = (float) 1.5;
+        float b = (float) 1.5986;
+        float c = (float) 0.5986;
+    }
+
+    public void strings(){
+        String palavra = "bla bla";
+        String b = "test";
+        String c = "AaDa";
+        String d = "Aa";
+        String e = "A12";
+        String f = "09";
+        String g = "Mauhsuwswijsiks wuhedywghdwujsoqwks dhywgdywqgsuqjsiqjs uwhsdywgduhsiqjsqs**";
+        String h = "!:_)(*&&*)oiiis";
+    }
+
+    public void expressoesRelacionais(){
+        String a;
+        String b;
+        int c;
+        boolean n = a == b;
+        n = (a + c) > b;
+    }
+
+    public void testingWhile(int x, int y){
+        while(true){
+            x = y + 1;
+        }
+    }
+
+    public void testFor(){
+        for(;;){}
+        for(int i = 0; i < 100; i++){}
+        for(int j = 0; j < 100; ){}
+        for(int k = 0; ; ){}
+        for(int i = 0; i < 12; i++){
+            String s = "testando o for " + i;
+        }
+    }
 
     protected String testaRetornoDeTipo(){
         String ola = "ola";
         return ola;
     }
 
-    private int testaRetornoEChamadaDeMetodo(){
-        String a = testaRetornoDeTipo();
-        int retorno = 10;
-
+    private Integer testaRetornoEChamadaDeMetodo(){
+        testaRetornoDeTipo();
+        Integer retorno = 10;
         return retorno;
     }
+
+    private boolean testaRetornoDeMetodo(){
+        Integer retorno = 10;
+        boolean a = 10 >= 0;
+        return a;
+    }
+
 }
 

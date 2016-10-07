@@ -11,25 +11,26 @@ import java.util.*;
 
 public class SemanticImpl{
 
+    private static Map<String, List<String>> tiposCompativeis = new HashMap<String, List<String>>();
     private HashMap<String,Variable> variables = new HashMap<String,Variable>();
     private List<Type> secondaryTypes = new ArrayList<Type>();
-    private ArrayList<Function> functions = new ArrayList<Function>();
     private List<Variable> tempVariables = new ArrayList<Variable>();
+    private ArrayList<Function> functions = new ArrayList<Function>();
     private Stack<ScopedEntity> scopeStack = new Stack<ScopedEntity>();
-    Program jProgram = new Program();
-    private static Map<String, List<String>> tiposCompativeis = new HashMap<String, List<String>>();
+    private Stack<Integer> condLabel = new Stack<Integer>();
+    private Program javaProgram;
+    private static String currentOperator;
+    private static SemanticImpl singleton;
 
     public int forCounter = 0;
+    public Program jProgram = new Program();
     public static boolean contextFor;
-    private static SemanticImpl singleton;
+    public static CodeGenerator codeGenerator;
 
     public static CodeGenerator getCodeGenerator() {
         return codeGenerator;
     }
-    private Stack<Integer> condLabel = new Stack<Integer>();
-    static CodeGenerator codeGenerator;
-    private static String currentOperator;
-    private Program javaProgram;
+
     public static SemanticImpl getInstance(){
         if(singleton ==  null){
             singleton = new SemanticImpl();
@@ -89,6 +90,7 @@ public class SemanticImpl{
         tiposCompativeis.put("float", floatCompTypes);
         tiposCompativeis.put("long", longCompTypes);
         tiposCompativeis.put("int", intCompTypes);
+        tiposCompativeis.put("Integer", intCompTypes);
         tiposCompativeis.put("string", stringCompTypes);
         tiposCompativeis.put("String", stringCompTypes);
     }
@@ -98,8 +100,6 @@ public class SemanticImpl{
     }
 
     public void exitForCurrentScope(Expression aexp) throws InvalidFunctionException, InvalidOperationException, InvalidTypeException {
-        System.out.println("#################");
-        System.out.println(aexp.getValue());
         if(aexp != null){
             String[] parts = aexp.getValue().split(" ");
             switch(Operation.valueOf(parts[1])) {
@@ -118,13 +118,15 @@ public class SemanticImpl{
 
             }
         }
-        codeGenerator.generateBRCode(condLabel.pop());
+        if(condLabel!=null && !condLabel.isEmpty()){
+            codeGenerator.generateBRCode(condLabel.pop());
+        }
+
         String x = codeGenerator.getAssemblyCode().replace("forSTRINGCHAVEQUENAOVAIEXISTIRNOUTROCANTOTOP"+forCounter, ""+(codeGenerator.getLabels()+8));
         forCounter--;
         codeGenerator.setAssemblyCode(x);
         ScopedEntity scoped = scopeStack.pop();
     }
-
 
     public void exitCurrentScope() throws InvalidFunctionException {
         ScopedEntity scoped = scopeStack.pop();
@@ -137,7 +139,7 @@ public class SemanticImpl{
                 checkDeclaredAndReturnedType(scoped.getName(), ((Function) scoped).getDeclaredReturnType(), exp);
             }else{
                 if(!((Function) scoped).getDeclaredReturnType().equals(new Type("void"))){
-                    throw new InvalidFunctionException("The function "+scoped.getName() +" is missing a return statement in the end of it");
+                    throw new InvalidFunctionException("ERRO: A funcao "+scoped.getName() +" nao contem um retorno em seu fim.");
                 }
             }
         }
@@ -183,10 +185,10 @@ public class SemanticImpl{
         for(Function fun : functions){
             if(fun.getName().equals(temp.getName())) {
                 if(!fun.getDeclaredReturnType().getName().equals(temp.getDeclaredReturnType().getName())){
-                    throw new InvalidFunctionException("ERROR: The function "+temp.getName()+" has already been declared with another return type!");
+                    throw new InvalidFunctionException("ERRO: O metodo "+temp.getName()+" ja foi declarado com um tipo de retorno diferente!");
                 }
                 if(temp.equals(fun)){
-                    throw new InvalidFunctionException("ERROR: The function " + temp.getName() + " has already been declared with the same parameters!");
+                    throw new InvalidFunctionException("ERRO: O metodo " + temp.getName() + " ja foi declarado com esses mesmos parametros!");
                 }
 
             }
@@ -200,19 +202,18 @@ public class SemanticImpl{
             if(f.getName().equals(funcName)){
                 ArrayList<Parameter> p = (ArrayList<Parameter>) f.getParams();
                 if(p.size() != args.size()){
-                    throw new InvalidFunctionException("The method call of " + funcName + " has incorrect number of arguments");
+                    throw new InvalidFunctionException("ERRO: O metodo chamado " + funcName + " tem a quantidade errada de argumentos");
                 }
                 for(int i = 0; i < p.size(); i++){
                     if(!p.get(i).getType().getName().equals(args.get(i).getType().getName())){
-                        throw new InvalidFunctionException("The method call of " + funcName + " expects a " + p.get(i).getType().getName() + " but got the type " + args.get(i).getType().getName());
+                        throw new InvalidFunctionException("ERRO: O metodo chamado " + funcName + " esperava o tipo " + p.get(i).getType().getName() + " mas recebeu o tipo " + args.get(i).getType().getName());
                     }
                 }
                 return true;
             }
         }
-        throw new InvalidFunctionException("The function " + funcName + " may have not been declared");
+        throw new InvalidFunctionException("ERRO: O metodo " + funcName + " pode não ter sido declarado ainda!");
     }
-
 
     public boolean checkValidExistingType(Type type) {
         return BASIC_TYPES.contains(type) || secondaryTypes.contains(type);
@@ -247,7 +248,8 @@ public class SemanticImpl{
 
     public boolean checkTypeOfAssignment(Variable variable, Expression exp) throws InvalidTypeAssignmentException{
         if (!variable.getType().equals(exp.getType())){
-            throw new InvalidTypeAssignmentException("Alguma msg aqui");
+            throw new InvalidTypeAssignmentException("ERRO: O tipo "+variable.getType().getName() +" da variavel "
+                    + variable.getIdentifier() + " nao corresponde ao tipo do seu valor (" + exp.getType().getName()+")");
         }
         return true;
     }
@@ -255,7 +257,8 @@ public class SemanticImpl{
     public boolean isNumericExpression(Expression le, Expression re) throws InvalidOperationException{
         if((le != null && !le.isNumeric()) || (re != null && !re.isNumeric())){
             if(!isStringExpression(le, re)){
-                throw new InvalidOperationException("Not a numeric or string expression");
+                throw new InvalidOperationException("ERRO: A expressao "+ le.getValue()+ " com tipo " + le.getType().getName() +
+                        " e/ou a expressao " + re.getValue() + " com tipo "+ re.getType().getName()+" nao é expressao numerica ou string");
             }
         }
         return true;
@@ -263,14 +266,17 @@ public class SemanticImpl{
 
     public boolean isStringExpression(Expression le, Expression re) throws InvalidOperationException {
         if((le != null && !le.isString()) && (re != null && !re.isString())){
-            throw new InvalidOperationException("Not a string expression");
+            throw new InvalidOperationException("ERRO: A expressao formada pela subexpressao de valor " + le.getValue() + " e tipo " +
+                    le.getType().getName() + " e a subexpressao de valor " + le.getValue() + " e tipo " + le.getType().getName() +
+                    " nao é uma 'string expression'!");
         }
         return true;
     }
 
     public boolean isRelationalExpression(Expression le, Expression re) throws InvalidOperationException {
         if(!le.getType().equals(re.getType())){
-            throw new InvalidOperationException("Not a relational expression!");
+            throw new InvalidOperationException("ERRO: A expressao formada pelas subexpressoes de valor " + le.getValue() + " do tipo "
+                    + le.getType().getName()+" e de valor " + re.getValue() + " do tipo " + re.getType().getName()+ " nao é uma expressao relacional!");
         }
         return true;
     }
@@ -286,22 +292,26 @@ public class SemanticImpl{
      */
     private void validateVariable(Variable variable) throws Exception{
         if (checkVariableExistenceLocal(variable.getIdentifier())){
-            throw new InvalidVariableException("Name already exists");
+            throw new InvalidVariableException("ERRO: A variavel de nome " + variable.getIdentifier() + " e tipo " + variable.getType().getName() +
+                    " ja existe!");
         }
         if (!checkValidExistingType(variable.getType())){
             if(!variable.getValue().getType().getName().equals("null")){
-                throw new InvalidTypeException("Type non existing");
+                throw new InvalidTypeException("ERRO: O tipo " + variable.getType().getName() + " da variavel "+ variable.getIdentifier()+
+                        " nao existe!");
             }
         }
     }
 
     private void validateVariableGlobal(Variable variable) throws Exception{
         if (checkVariableExistenceGlobal(variable.getIdentifier())){
-            throw new InvalidVariableException("Name already exists");
+            throw new InvalidVariableException("ERRO: A variavel de nome " + variable.getIdentifier() + " e tipo " + variable.getType().getName() +
+                    " ja existe!");
         }
         if (!checkValidExistingType(variable.getType())){
             if(!variable.getValue().getType().getName().equals("null")) {
-                throw new InvalidTypeException("Type non existing");
+                throw new InvalidTypeException("ERRO: O tipo " + variable.getType().getName() + " da variavel "+ variable.getIdentifier()+
+                        " nao existe!");
             }
         }
     }
@@ -330,7 +340,6 @@ public class SemanticImpl{
 
     public String getFunctionType(String variableName) {
         for(Function f : functions){
-            System.out.println(f.getName());
             if (f.getName().equals(variableName)){
                 return f.getDeclaredReturnType().getName();
             }
@@ -349,7 +358,7 @@ public class SemanticImpl{
 
     public void validateFunction(String functionName, ArrayList<Parameter> params, Type declaredType) throws Exception {
         if(declaredType == null){
-            throw new InvalidFunctionException("The function "+functionName +" is missing either a declared return type or a return statement in the end of it");
+            throw new InvalidFunctionException("ERRO: O metodo "+functionName +" esta sem declaracao do tipo de retorno, ou se possui, nao contem retorno no seu fim!");
         }
         Function temp = new Function(functionName, params);
         temp.setDeclaredReturnedType(declaredType);
@@ -363,24 +372,15 @@ public class SemanticImpl{
                     keyFunc += p.getType().getName();
                 }
             }
-            System.out.println(keyFunc);
             codeGenerator.addFunctionAddress(keyFunc);
             addFunctionAndNewScope(temp);
         }
 
     }
 
-
-
-    private void hasReturn(Expression exp) throws InvalidFunctionException {
-        if(!exp.getContext().equalsIgnoreCase("return")){
-            throw new InvalidFunctionException("Missing a return statement");
-        }
-    }
-
     private void checkDeclaredAndReturnedType(String functionName,Type declaredType, Expression exp) throws InvalidFunctionException {
         if(!declaredType.equals(exp.getType()) && !declaredType.equals(new Type("void"))){
-            throw new InvalidFunctionException("The function "+functionName+" didn't return the expected type: "+declaredType+". It returns "+exp.getType() + " instead");
+            throw new InvalidFunctionException("ERRO: O metodo "+functionName+" nao retorna o tipo esperado: "+declaredType+". Ao inves disso, retorna o tipo: "+exp.getType());
         }
     }
 
@@ -388,7 +388,7 @@ public class SemanticImpl{
         for(int i=0; i<params.size();i++){
             for(int k=i+1;k<params.size();k++){
                 if(params.get(i).getIdentifier().equals(params.get(k).getIdentifier())){
-                    throw new InvalidParameterException("The parameter: "+params.get(k).getIdentifier()+ " has been previously defined.");
+                    throw new InvalidParameterException("ERRO: O parametro: "+params.get(k).getIdentifier()+ " ja foi definido.");
                 }
             }
         }
@@ -454,9 +454,6 @@ public class SemanticImpl{
                     return new Expression(new Type("boolean"), le.getValue()+" "+md+" "+re.getValue());
                 case GT:
                     if(!contextFor) {
-                        System.out.println("Entrou no certo");
-                        System.out.println(le.getContext());
-                        System.out.println(re.getContext());
                         codeGenerator.generateSUBCode();
                         codeGenerator.generateBLEQZCode(3);
                         r = codeGenerator.generateLDCode(new Expression(new Type(
@@ -502,6 +499,7 @@ public class SemanticImpl{
                     if(!contextFor) codeGenerator.generateMULCode();
                     return new Expression(getMajorType(le.getType(), re.getType()));
                 case MOD:
+                    if(!contextFor) codeGenerator.generateMODCode();
                     return new Expression(getMajorType(le.getType(), re.getType()));
                 case PLUS:
                     if(!contextFor) codeGenerator.generateADDCode();
@@ -531,12 +529,12 @@ public class SemanticImpl{
                     }
                     return new Expression(le.getType(), le.getValue()+" "+md);
                 default:
-                    throw new InvalidOperationException("Operation doesn't exist");
+                    throw new InvalidOperationException("ERRO: A operacao '"+ md+ "' nao existe!");
 
             }
         }
 
-        throw new InvalidTypeException("Not allowed!");
+        throw new InvalidTypeException("ERRO: Operacao formada pela expressao '"+le.getValue()+" "+md+" " +re.getValue() +"' nao é permitida!");
     }
 
     private Type getMajorType(Type type1, Type type2) {
@@ -545,29 +543,30 @@ public class SemanticImpl{
 
     public void checkVariableAttribution(String id, Expression expression) throws InvalidVariableException, InvalidTypeException, InvalidFunctionException{
         if (!checkVariableExistence(id)){
-            throw new InvalidVariableException("Variable doesn't exist");
+            throw new InvalidVariableException("ERRO: A variavel chamada " +id+ " e com valor "+ expression.getValue()+" nao existe!");
         }
         if (!checkValidExistingType(expression.getType())){
             if(!expression.getType().getName().equals("null")) {
-                throw new InvalidTypeException("Type non existing");
+                throw new InvalidTypeException("ERRO: O tipo " + expression.getType().getName()+" atribuido a variavel "+ id + " nao existe!");
             }
         }
         Type identifierType = findVariableByIdentifier(id).getType();
         if (!checkTypeCompatibility(identifierType, expression.getType())){
-            String exceptionMessage = String.format("Incompatible types! %s doesn't match %s", identifierType, expression.getType());
+            String exceptionMessage = String.format("ERRO: Tipos incompativeis! %s nao e  compativel com %s", identifierType, expression.getType());
             throw new InvalidFunctionException(exceptionMessage);
         }
     }
+
     public void checkVariableAttribution(String id, String function) throws InvalidVariableException, InvalidTypeException, InvalidFunctionException{
         if (!checkVariableExistence(id)){
-            throw new InvalidVariableException("Variable doesn't exist");
+            throw new InvalidVariableException("ERRO: A variavel chamada " +id+ " atribuida a funcao "+ function+" nao existe!" );
         }
         Type identifierType = findVariableByIdentifier(id).getType();
 
         for(Function f : functions){
             if(f.getName().equals(function)){
                 if (!checkTypeCompatibility(identifierType, f.getDeclaredReturnType())){
-                    String exceptionMessage = String.format("Incompatible types! %s doesn't match %s", identifierType, f.getDeclaredReturnType());
+                    String exceptionMessage = String.format("ERRO: Tipos incompativeis! %s nao é compativel com %s", identifierType, f.getDeclaredReturnType());
                     throw new InvalidFunctionException(exceptionMessage);
                 }
             }
@@ -575,7 +574,6 @@ public class SemanticImpl{
 
 
     }
-
 
     public Variable findVariableByIdentifier(String variableName){
         if(!scopeStack.isEmpty() && getCurrentScope().getVariable().get(variableName) != null){
@@ -588,7 +586,7 @@ public class SemanticImpl{
 
     public void validateVariableName(String variableName) throws InvalidVariableException{
         if (!checkVariableExistence(variableName)){
-            throw new InvalidVariableException("Variable doesn't exist");
+            throw new InvalidVariableException("ERRO: A variavel chamada " + variableName + " nao existe!");
         }
     }
 
@@ -599,17 +597,14 @@ public class SemanticImpl{
                 return;
             }
 
-            throw new InvalidTypeException("Superclass doesn't exist");
+            throw new InvalidTypeException("ERRO: A super classe " + superClassName + "nao existe!");
         }
     }
-
-	/* Auxiliary functions*/
 
     public void addVariableToTempList(Variable var){
         tempVariables.add(var);
     }
 
-    /* FOR */
     public void createForScope(Variable var, Expression bexp, Expression aexp) throws InvalidTypeException, InvalidOperationException {
         For f = new For("For");
         for(Variable v: getCurrentScope().getVariable().values()){
@@ -624,9 +619,8 @@ public class SemanticImpl{
         }
         if(bexp != null){
             if(!bexp.getType().getName().equals("boolean")){
-                throw new InvalidTypeException("A expressão deveria ser boolean");
+                throw new InvalidTypeException("ERRO: A expressão com valor "+bexp.getValue()+" deveria ser boolean, porem é do tipo "+bexp.getType().getName());
             }
-            System.out.println(bexp.getValue());
             String[] parts = bexp.getValue().split(" ");
 
             codeGenerator.generateLDCode(findVariableByIdentifier(parts[0]));
@@ -662,15 +656,16 @@ public class SemanticImpl{
             contextFor = false;
         }
 
-
         if(aexp != null){
             if(aexp.getType().getName().equals("boolean")){
-                throw new InvalidTypeException("A expressão deve ser aritmetica");
+                throw new InvalidTypeException("ERRO: A expressão com valor "+aexp.getValue()+" deveria ser aritimetica, porem é uma expressao booleana");
             }
         }
+
         if(var != null){
             getCurrentScope().getVariable().remove(var.getIdentifier());
         }
+
         scopeStack.push(f);
 
     }

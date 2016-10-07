@@ -22,7 +22,7 @@ parser code  {:
  }
 :};
 
-terminal BOOLEAN, BYTE, SHORT, INT, LONG, CHAR, TRUE, FALSE, FLOAT, DOUBLE;
+terminal BOOLEAN, BYTE, SHORT, INT, LONG, CHAR, TRUE, FALSE, FLOAT, DOUBLE,I_CONSTANT, F_CONSTANT, C_CONSTANT;
 terminal DOT, SEMICOLON, MULT, COMMA, LBRACE, RBRACE, EQ, LPAREN, RPAREN, COLON;
 terminal PACKAGE, IMPORT, PUBLIC, PROTECTED, PRIVATE, THREADSAFE, STATIC, ABSTRACT, FINAL, NATIVE, SYNCHRONIZED, TRANSIENT, VOLATILE;
 terminal CLASS, EXTENDS, IMPLEMENTS, VOID, THROWS, THIS, SUPER, INTERFACE; // interface_declaration
@@ -32,8 +32,6 @@ terminal LBRACK, RBRACK, LSHIFT, RSHIFT, URSHIFT, LT, GT, LTEQ, GTEQ, INSTANCEOF
 terminal EQEQ, NOTEQ, AND, XOR, OR, ANDAND, OROR, OROREQ, QUESTION;
 terminal MULTEQ, DIVEQ, MODEQ, PLUSEQ, MINUSEQ, LSHIFTEQ, RSHIFTEQ, URSHIFTEQ, ANDEQ, XOREQ, OREQ;
 
-terminal java.lang.Number INTEGER_LITERAL;
-terminal java.lang.Number FLOATING_POINT_LITERAL;
 terminal java.lang.Boolean BOOLEAN_LITERAL;
 terminal java.lang.Character CHARACTER_LITERAL;
 terminal java.lang.String STRING_LITERAL;
@@ -167,7 +165,7 @@ call_method ::=  IDENTIFIER:id LPAREN   {:Logger.print("Line 163");:}
                      SemanticImpl.getInstance().verifyCall((String)id,(ArrayList<Expression>) args); RESULT = id;
                      SemanticImpl.getInstance().getCodeGenerator().generateCodeFunctionCall((String) id, (ArrayList<Expression>) args);
                      }else{
-                     Logger.print("Line 164b");
+                     Logger.print("Line 164b " + args);
                         SemanticImpl.getInstance().verifyCall((String)id,new ArrayList<Expression>()); RESULT= id;
                         SemanticImpl.getInstance().getCodeGenerator().generateCodeFunctionCall((String) id);
                      }:}
@@ -179,7 +177,7 @@ constructor_declaration ::=
     statement_block                                                     {:Logger.print("Line 138");:};
 
 variable_declaration ::=
-    type:t variable_declarator_loop:v SEMICOLON                         {:Logger.print("Line 140");
+    type:t variable_declarator_loop:v SEMICOLON                         {:Logger.print("Line 140 " + t);
                                                                         SemanticImpl.getInstance().addVariablesFromTempList((Type) t);RESULT=v;:}
     | modifier_loop type variable_declarator_loop SEMICOLON             {:Logger.print("Line 141");:};
 
@@ -208,7 +206,7 @@ variable_declarator_loop ::=
 ;
 
 variable_declarator ::=
-    IDENTIFIER:id brack_loop attr_opt:exp                               {:Logger.print("Line 161");
+    IDENTIFIER:id brack_loop attr_opt:exp                               {:Logger.print("Line 161 id "+ id + " exp "+ exp);
                                                                         Variable temp = new Variable((String) id,new Type("null"), (Expression) exp);
                                                                         if(!SemanticImpl.getInstance().contextFor) SemanticImpl.getInstance().getCodeGenerator().assignmentDeclaration((Variable) temp, (Expression) exp);
                                                                         Logger.print("Temp type "+ temp);
@@ -220,7 +218,7 @@ attr_opt ::=                                                            {:Logger
 ;
 
 variable_initializer ::=
-    expression:e                                                        {:Logger.print("Line 167 - Teste de Exp " + ((Expression)e).getValue()); RESULT = e;:}
+    expression:e                                                        {:Logger.print("Line 167 - Teste de Exp " + e); RESULT = e;:}
     | LBRACE variable_initializer_opt RBRACE                            {:Logger.print("Line 168");:} //isso aqui tem como retornar uma expression? se nao, vai quebrar no value de variable
     | IDENTIFIER:id                                                     {:Logger.print("Line 170");
                                                                         SemanticImpl.getInstance().validateVariableName(id);
@@ -580,12 +578,14 @@ switch_clausulas ::=
 ;
 
 literal_expression ::=
-    INTEGER_LITERAL:i                                                   {:RESULT = new Expression(new Type("int"), i.toString());
-                                                                        Logger.print("Line 388, valor do I: "+i);:}
-    | FLOATING_POINT_LITERAL:f                                          {:RESULT = new Expression(new Type("float"), f.toString());
-                                                                        Logger.print("Line 389, valor do f: "+f);:}
+    F_CONSTANT:f                                            {:RESULT = new Expression(new Type("float"), f.toString());
+                                                                        Logger.print("Line 389, valor do f: "+f.toString());:}
+    | I_CONSTANT:i                                                   {:RESULT = new Expression(new Type("int"), i.toString());
+                                                                        Logger.print("Line 388, valor do I: "+i.toString());:}
     | BOOLEAN_LITERAL:b                                                 {:RESULT = new Expression(new Type("boolean"), b.toString());
-                                                                        Logger.print("Line 390, valor do B: "+b);:}
+                                                                        Logger.print("Line 391, valor do B: "+b);:}
+    | C_CONSTANT:c                                                      {:RESULT = new Expression(new Type("char"), c.toString());
+                                                                        Logger.print("Line 391, valor do C: "+c);:}
     | CHARACTER_LITERAL:c                                               {:RESULT = new Expression(new Type("char"), c.toString());
                                                                         Logger.print("Line 391, valor do C: "+c);:}
     | STRING_LITERAL:s                                                  {:RESULT = new Expression(new Type("string"), s.toString());
