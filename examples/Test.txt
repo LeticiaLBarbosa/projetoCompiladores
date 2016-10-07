@@ -97,7 +97,7 @@ public class ExemploTeste{
     }
 
     private Integer testaRetornoEChamadaDeMetodo(){
-        testaRetornoDeTipo();
+        String b = testaRetornoDeTipo();
         Integer retorno = 10;
         return retorno;
     }

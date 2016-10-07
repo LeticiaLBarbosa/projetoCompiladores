@@ -199,10 +199,11 @@
 2108: ST 0(SP), #2124
 2116: BR 2000
 2124: SUB SP, SP, #testaRetornoEChamadaDeMetodosize
-2132: LD R1, #10
-2140: ST retorno, R1
-2148: LD R1, retorno
-2156: BR *0(SP)
+2132: ST b, R1
+2140: LD R1, #10
+2148: ST retorno, R1
+2156: LD R1, retorno
+2164: BR *0(SP)
 
 
 2200: LD R2, #10
