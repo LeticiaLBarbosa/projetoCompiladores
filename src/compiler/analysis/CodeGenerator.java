@@ -376,4 +376,9 @@ public class CodeGenerator {
         Register result = allocateRegister();
         addCode(labels + ": MOD " + result + ", " + one + ", " + two);
     }
+
+    public void generateBRCode(String s) {
+        labels += 8;
+        addCode(labels + ": BR " + s);
+    }
 }
