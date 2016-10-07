@@ -364,7 +364,7 @@ expression ::=
     | creating_expression:cre                                           {: Logger.print("Line 262 ");RESULT = cre;:}
     | literal_expression:le                                             {:Logger.print("Line 263, le = " + ((Expression)le).getValue()); if(!SemanticImpl.getInstance().contextFor) SemanticImpl.getInstance().getCodeGenerator().generateLDCode((Expression) le); RESULT = le;:}
     | attribution:attr                                                  {: Logger.print(" Line 269 ");RESULT = attr;:}
-    | call_method:cm                                                    {:Logger.print("Line 351 "+ cm);RESULT = cm;:}
+    | call_method:cm                                                    {:Logger.print("Line 351 " + cm);RESULT = new Expression(new Type((String)SemanticImpl.getInstance().getFunctionType((String)cm)), (String)cm) ;:}
     | SUPER:sup                                                         {:Logger.print("Line 266 ");RESULT = sup;:}
     | THIS:th                                                           {: Logger.print("Line 267 ");RESULT = th;:}
     | IDENTIFIER:id                                                     {: Logger.print("Line 268 " + id);

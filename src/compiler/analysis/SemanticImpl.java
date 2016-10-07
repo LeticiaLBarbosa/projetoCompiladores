@@ -75,6 +75,7 @@ public class SemanticImpl{
 
         List<String> intCompTypes = new ArrayList<String>();
         intCompTypes.add("int");
+        intCompTypes.add("Integer");
 
         List<String> stringCompTypes = new ArrayList<String>();
         stringCompTypes.add("int");
@@ -327,14 +328,14 @@ public class SemanticImpl{
         }
     }
 
-    private boolean validateVariableNameForFunction(String variableName) {
+    public String getFunctionType(String variableName) {
         for(Function f : functions){
             System.out.println(f.getName());
             if (f.getName().equals(variableName)){
-                return true;
+                return f.getDeclaredReturnType().getName();
             }
         }
-        return false;
+        return null;
     }
 
     public void addVariablesFromTempList(Type type) throws Exception{
