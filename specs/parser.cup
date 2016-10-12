@@ -439,11 +439,11 @@ for_div_1 ::=
 
 numeric_expression ::=
     MINUS expression:e                                                  {: Logger.print("Line 298");
-                                                                        SemanticImpl.getInstance().isNumericExpression((Expression) e, null); RESULT = e;:}
+                                                                        SemanticImpl.getInstance().isNumericExpression((Expression) e); RESULT = e;:}
     | numeric_option expression:e                                       {: Logger.print("Line 299");
-                                                                        SemanticImpl.getInstance().isNumericExpression((Expression) e, null); RESULT=e;:}
+                                                                        SemanticImpl.getInstance().isNumericExpression((Expression) e); RESULT=e;:}
 	| expression:e numeric_option:no                                    {:Logger.print("Line 300, numeric_option:" + e);
-	                                                                    SemanticImpl.getInstance().isNumericExpression((Expression) e, null);
+	                                                                    SemanticImpl.getInstance().isNumericExpression((Expression) e);
 	                                                                    System.out.println(Operation.valueOf(((Node) no).getIdentifier()));
 	                                                                    RESULT = SemanticImpl.getInstance().getExpression((Expression) e,
                                                                         Operation.valueOf(((Node) no).getIdentifier()), null);
