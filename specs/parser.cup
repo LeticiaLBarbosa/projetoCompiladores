@@ -171,8 +171,10 @@ call_method ::=
                                                                             SemanticImpl.getInstance().getCodeGenerator().generateCodeFunctionCall((String) id, (ArrayList<Expression>) args);
                                                                             }else{
                                                                             Logger.print("Line 173");
+                                                                            Logger.print("Line 173ba");
                                                                             SemanticImpl.getInstance().verifyCall((String)id,new ArrayList<Expression>());
                                                                             RESULT= id;
+                                                                            Logger.print("Line 173b");
                                                                             SemanticImpl.getInstance().getCodeGenerator().generateCodeFunctionCall((String) id);
                                                                             }:}
 ;

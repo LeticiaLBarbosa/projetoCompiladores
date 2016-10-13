@@ -71,12 +71,6 @@ public class ExemploTeste{
         n = (a + c) > b;
     }
 
-    public void testingWhile(int x, int y){
-        while(true){
-            x = y + 1;
-        }
-    }
-
     public void testFor(){
         for(int i = 0; true; i= i + 2){
             int d = 1231 * i;
@@ -103,12 +97,25 @@ public class ExemploTeste{
     }
 
     private boolean testaRetornoDeMetodo(){
-        Integer retorno = 10;
-        boolean a = 10 >= 0;
-        String b = "a" + "b" + 1 + retorno;
-        String c = "a" + b + a;
+             Integer retorno = 10;
+             boolean a = 10 >= 0;
+             String b = "a" + "b" + 1 + retorno;
+             String c = "a" + b + a;
+             return a;
+    }
+
+    private int overload(int a){
         return a;
     }
+    private int overload(){
+            return 1;
+    }
+
+    private void chamaoverload(){
+        overload();
+        overload(21);
+    }
+
 
 }
 

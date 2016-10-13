@@ -205,12 +205,13 @@ public class SemanticImpl{
     }
 
     public boolean verifyCall(String funcName, ArrayList<Expression> args) throws InvalidFunctionException {
-
+        boolean nCasouNumeroDeParametros = false;
         for (Function f : functions){
             if(f.getName().equals(funcName)){
                 ArrayList<Parameter> p = (ArrayList<Parameter>) f.getParams();
                 if(p.size() != args.size()){
-                    throw new InvalidFunctionException("ERRO: O método chamado " + funcName + " tem a quantidade errada de argumentos");
+                    nCasouNumeroDeParametros = true;
+                    continue;
                 }
                 for(int i = 0; i < p.size(); i++){
                     if(!p.get(i).getType().getName().equals(args.get(i).getType().getName())){
@@ -219,9 +220,11 @@ public class SemanticImpl{
                     }
                 }
                 return true;
+
             }
         }
-        throw new InvalidFunctionException("ERRO: O método " + funcName + " pode não ter sido declarado ainda!");
+        if(nCasouNumeroDeParametros) throw new InvalidFunctionException("ERRO: O método chamado " + funcName + " tem a quantidade errada de argumentos");
+        else throw new InvalidFunctionException("ERRO: O método " + funcName + " pode não ter sido declarado ainda!");
     }
 
     public boolean checkValidExistingType(Type type) {
