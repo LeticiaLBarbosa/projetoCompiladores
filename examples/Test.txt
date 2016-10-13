@@ -105,6 +105,8 @@ public class ExemploTeste{
     private boolean testaRetornoDeMetodo(){
         Integer retorno = 10;
         boolean a = 10 >= 0;
+        String b = "a" + "b" + 1 + retorno;
+        String c = "a" + b + a;
         return a;
     }
 
