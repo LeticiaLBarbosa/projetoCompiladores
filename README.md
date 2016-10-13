@@ -14,4 +14,8 @@ CUP is a LALR (lookahead-LR method) parser generator. CUP reads a syntacitc spec
 ## Building the Project ##
 
 * First, make sure you have [Ant](http://ant.apache.org/) installed in your computer.
-* By this moment, you just need to run ```ant``` on the project's root directory.
+* By this moment, you just need to run ```ant compile``` on the project's root directory.
+
+
+## IDE ##
+* If you'd like, you can import this project on Intellij IDE making the source ass the source module and libs directory as external libraries.
